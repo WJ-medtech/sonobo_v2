@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>準備・プローブ — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-logo {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    color: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .header-title h1 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .header-title p {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+
+  .progress-bar-wrap {
+    margin-left: auto;
+    text-align: right;
+    color: white;
+    font-size: 0.75rem;
+    opacity: 0.9;
+    min-width: 120px;
+  }
+
+  .progress-bar {
+    width: 120px;
+    height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* ===== CHAPTER NAV ===== */
+  .chapter-nav {
+    background: white;
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    scrollbar-width: none;
+  }
+
+  .chapter-nav::-webkit-scrollbar { display: none; }
+
+  .chapter-btn {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 2px solid #e0e8f8;
+    background: white;
+    color: var(--text-light);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .chapter-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #f0f6ff;
+  }
+
+  .chapter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .chapter-btn.completed {
+    background: #e8faf5;
+    border-color: var(--accent);
+    color: #009979;
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+
+  /* ===== SONOBO CHAT ===== */
+  .chat-bubble-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .sonobo-avatar {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .chat-bubble {
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    border-left: 4px solid var(--primary);
+    position: relative;
+  }
+
+  .chat-bubble::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    bottom: 16px;
+    border: 8px solid transparent;
+    border-right-color: white;
+    border-left: none;
+  }
+
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ===== CONTENT CARD ===== */
+  .content-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .card-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--primary-dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .icon {
+    font-size: 1.3rem;
+  }
+
+  .content-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .content-card ul li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border-bottom: 1px solid #f0f4ff;
+  }
+
+  .content-card ul li:last-child { border-bottom: none; }
+
+  .content-card ul li::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    color: var(--primary-light);
+    font-size: 0.65rem;
+    top: 12px;
+  }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #fff3cd, #fff8e1);
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .highlight-box .emoji { font-size: 1.4rem; }
+
+  .tip-box {
+    background: linear-gradient(135deg, #e8f8f3, #d4f1e8);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .warn-box {
+    background: linear-gradient(135deg, #fff0f0, #ffe8e8);
+    border: 2px solid #ff6b6b;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  /* ===== PROBE TABLE ===== */
+  .probe-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 12px 0;
+  }
+
+  .probe-table th {
+    background: var(--primary);
+    color: white;
+    padding: 10px 12px;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .probe-table th:first-child { border-radius: 10px 0 0 0; }
+  .probe-table th:last-child { border-radius: 0 10px 0 0; }
+
+  .probe-table td {
+    padding: 9px 12px;
+    text-align: center;
+    border-bottom: 1px solid #e8f0ff;
+  }
+
+  .probe-table tr:nth-child(even) td { background: #f5f8ff; }
+  .probe-table tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+  .probe-table tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+
+  .probe-icon {
+    font-size: 1.5rem;
+    display: block;
+    margin: 0 auto 4px;
+  }
+
+  /* ===== QUIZ ===== */
+  .btn-quiz-reveal {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #e8f0ff, #d4e4ff);
+    color: var(--primary-dark);
+    border: 2px dashed var(--primary-light);
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    transition: all 0.2s;
+    margin: 14px 0 0;
+    text-align: center;
+  }
+
+  .btn-quiz-reveal:hover {
+    background: linear-gradient(135deg, #dce8ff, #c4d8ff);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(26,111,212,0.2);
+  }
+
+  .quiz-card {
+    background: linear-gradient(135deg, #f0f6ff, #e8f0ff);
+    border: 3px solid var(--primary-light);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 16px 0;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .quiz-badge {
+    background: var(--primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .quiz-question {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    color: var(--primary-dark);
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .quiz-option {
+    background: white;
+    border: 2px solid #c8d8f8;
+    border-radius: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    transition: all 0.2s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .quiz-option:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: #f0f6ff;
+    transform: translateX(4px);
+  }
+
+  .quiz-option .opt-label {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e8f0ff;
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .quiz-option.correct {
+    border-color: var(--accent);
+    background: #e8faf5;
+  }
+
+  .quiz-option.correct .opt-label {
+    background: var(--accent);
+    color: white;
+  }
+
+  .quiz-option.wrong {
+    border-color: #ff6b6b;
+    background: #fff0f0;
+  }
+
+  .quiz-option.wrong .opt-label {
+    background: #ff6b6b;
+    color: white;
+  }
+
+  .quiz-option:disabled { cursor: default; }
+
+  .quiz-feedback {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .quiz-feedback.show { display: block; animation: fadeInUp 0.3s ease; }
+
+  .quiz-feedback.correct-fb {
+    background: #e8faf5;
+    border: 2px solid var(--accent);
+    color: #006b50;
+  }
+
+  .quiz-feedback.wrong-fb {
+    background: #fff0f0;
+    border: 2px solid #ff6b6b;
+    color: #c00;
+  }
+
+  /* ===== ECHO IMAGE VIEWER ===== */
+  .echo-viewer {
+    background: #0a0a1a;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 12px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .echo-viewer-title {
+    color: #4af;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .echo-diagram {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+  }
+
+  /* SVG diagrams */
+  .svg-container {
+    width: 100%;
+    margin: 12px 0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* ===== NEXT BUTTON ===== */
+  .btn-next {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(26,111,212,0.3);
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26,111,212,0.4);
+  }
+
+  .btn-next:active { transform: translateY(0); }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin: 20px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .section-header .section-icon {
+    font-size: 2.4rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+
+  .section-header h2 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .section-header p {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    margin-top: 2px;
+  }
+
+  /* ===== STEP INDICATOR ===== */
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .step-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    background: #f8faff;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-light);
+  }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .step-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding-top: 3px;
+  }
+
+  /* ===== COMPLETION ===== */
+  .completion-card {
+    background: linear-gradient(135deg, #0d4fa0, #1a6fd4, #4a9eff);
+    color: white;
+    border-radius: 24px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.5s ease;
+    margin: 24px 0;
+  }
+
+  .completion-card h2 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 12px 0 8px;
+  }
+
+  .completion-card p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .score-display {
+    background: rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 16px 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  /* ===== TOP MENU BUTTONS ===== */
+  .menu-section-label {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 2px 4px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    border-left: 3px solid var(--primary-light);
+    padding-left: 8px;
+  }
+
+  .menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 2px solid #e0e8f8;
+    border-radius: 14px;
+    padding: 13px 14px;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left;
+    width: 100%;
+  }
+
+  .menu-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: #f4f8ff;
+    transform: translateX(3px);
+    box-shadow: 0 3px 12px rgba(26,111,212,0.12);
+  }
+
+  .menu-btn:active:not(:disabled) { transform: translateX(1px); }
+
+  .menu-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #fafafa;
+  }
+
+  .menu-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+  }
+
+  .menu-text { flex: 1; min-width: 0; }
+
+  .menu-title {
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.3;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .menu-sub {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .menu-arrow {
+    font-size: 1.4rem;
+    color: var(--primary-light);
+    flex-shrink: 0;
+    font-weight: 300;
+  }
+
+  .menu-badge-soon {
+    background: #f0f0f0;
+    color: #999;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    white-space: nowrap;
+  }
+
+  /* ===== SCREEN MANAGEMENT ===== */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ===== ANATOMY LABEL ===== */
+  .label-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ===== BADGE ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--accent);
+    color: white;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  /* ===== PROBE CARD ===== */
+  .probe-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .probe-card {
+    background: linear-gradient(135deg, #f0f6ff, #e8f0ff);
+    border: 2px solid #c8d8f8;
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .probe-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+
+  .probe-card-icon { font-size: 2rem; margin-bottom: 6px; }
+
+  .probe-card-name {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--primary-dark);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    margin-bottom: 4px;
+  }
+
+  .probe-card-sub {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    line-height: 1.4;
+  }
+
+  /* View tabs */
+  .view-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .view-tab {
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 2px solid #e0e8f8;
+    background: white;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .view-tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeInUp 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <img src="" id="headerLogo" alt="ソノボ君" class="header-logo" style="width:52px;height:52px;object-fit:contain"/>
+  <div class="header-title">
+    <h1>ソノボ君と学ぶ<br>ポイントオブケアエコー</h1>
+    <p>Point-of-Care Ultrasound Learning</p>
+  </div>
+  <div class="progress-bar-wrap">
+    <div id="progressText">0 / 0 完了</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</header>
+
+<nav class="chapter-nav" id="chapterNav">
+  <button class="chapter-btn" onclick="window.location.href='sonobo_top.html'">🏠 メニュー</button>
+  <button class="chapter-btn active" id="mainChapterBtn">📖 準備・プローブ</button>
+</nav>
+
+<main class="main" id="mainContent"></main>
+
+<script>
+const SLIDES = {
+  sonobo_avatar: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAIAAABt+uBvAAAtAUlEQVR4nO19d3hc1bXv2uWUqeqSLblIcpN7xXQwzXRDwFxaCJcaQgoQAgkkIUDoBBKSACGE0EIoIVQDBkwzmO5uIzdZbrK6RlNP2Xuv9f4Ym3DLSwyWk3ffd9cfo9Hom3P2/p3VyxYjIgAovv4v/SdijPF/9Rr+X6f/BegfkPxXLwCIgICA/ouUM2DAGGOM/WsWVqR/GUCIhISMMSkEwN/DwBiDRIwxzvg/Hyz2T1bSRGSQpOCfM4YfhFvbe9o7entT6XQmH4aaC56IRSvKE3WDKobWVcejkc+/rrTmjHP+T8KJMfbP4yAiQiQpBecAAItXrH9t4bKlq1vbu/sVQjQWiUWjlpSMC21M4Pm5fC6XK0gOg0qj0yeNPGT/SfvOGO84NgAYYwCA83+GAv1ncBARIKKUAgC2d/Y+/PSbr727wgvMmDGNUyY1DWsYGkmWaO74mnuKQo1AJBlxMswoL5vavnVrc3PL+jXrhPEP3GvsWaccNm3SGADQxvA9rKIYY3scIIMohQCA1i2dv7z/hUVL1o8d23DE7P1rhzektLuuM1zf4XdlVD4wQWh8hcYgGkREDhQRUBKzhlRGhlU4FY7Odm1d8tEna1euHNdQedmFJx2w72QA0FoLIfbQ4vc4QMYYKWXBC35+1xMvvb3isINnfO3Ewwpu5TsbvFVb86kcGeRSMFuA4IwIjEFEg4YCbZQ2QWjC0IShMWFoMawrc6fWR+orYfWnn7z72oLJo6tuv/aihuF1xpg9ZO32IEDFC3LOX31nyY9ueXTa5LHnn3dyJ5TOX5H+rEMRl3FHWJwxBlwwQCJCZcAYMoSEGIaolNnBTUaHSoe+yefCwPfL4/beTaVN1bB40ZvL33//svOO/c4FJwOAMWbAtdKeAgiRhOAAcMWND7y8cNWNV51bP37iHxelFm9Tjm3HbSYlA84IiHHOOSASGUAkY9Ag5jyNBjmQ0QY1am20MlqhVqiV8gJd8FRlhB+7z6BqJ/3QPfc3DY0/evePSpJxrU3xvgNFewSgotLJ5gunffs2EM6vbvreB9vFQ++lCuCUJ4QrmBRcCMYEAwaaii4QBpopTYKB1urcqWxzn3lmhZZAYEyojNKkihiF2qgQkfzQ5HPexKHR4/eufOvl5zetXvz8Q9eNGTlMaS0HTiUNfCyGiFKI7t70YaddM65pxP13XfW7971fvN4vXGtUNdmSMcl9AyCYtJgGitkkGIWGVUR0UxUFiDOG8sNHua1pEIJHLChoNEzkFcv4SIwjYyAEF0xKKEm4zVsK9z676YAjTzromDmHnHL14uVrLCmNNgO4o4HkIEQUQrR3pY4489oLzjjqtNOOvvTxbSs75ZRh4tKDo4Eyv/kYmMVnDIatWRaP8IPrTF2Cr+nBT9vo65MlEKzq1JzR7JHRez9M15bI8ZVi5XbvDx94+zfY+YJeuLaglc54puCZEpd7vhLaKE+pgnfenMao2Xb/3X947g9XzZw2dqBM20CKGBIxgEw2f+jpP/v3Uw87+/Rjz3tg05aCG4/ArcfGXl8fLtjM6yvkOVN5wgLXERv6cWRSvNKqjh1hK0PLOvGVDfqO2fZDnxaOHBV5dFnuhwcmzni05ydHJte3548Yl1y5Nb9wbfYb+1Ws3JZf3uo9sihTV8I7uwuFgrGA8qn+S04dm5Q9d91xz5tP/nzMyOEDorMHTMSIgIg456defNvxh+/13bOP/e4jmzZm7GREJCNsdLV1yuTYqZOso0exAMXtHxtXQI1LW7MQouRAbVk9sYbNHSd7c+gbXhLh6YAH2tSXCW2oKmH15vDa5/tmjix9d6335EeZfz+o6vipkbvOqv3+8ZU1pcwQRJOxXz/ZjHLwN7/59RPPv6k/nf382e8mDQxARdVz2XUP1A6uvu77p9/w3NZlnaIyaTEBvuE3vF1Y1RWePM4akmDVUfbvk+WGFG7OcUWgia3tw1db2cY+cjn9cZnp9Kz568P+wH5wSXjh/nFHsMeWhIZwWJXzcas3aZjDgVJ5NaspYYypK7euPb0+GyhbCMtyb/7j0rHjph5y8D5f//ZtnHPEAQBoAESsaLbmLfjo5t/+9Y0nbtzcXTjv8V5uR1xHMskcCywJxzRZo8rlX9ea0yfaPQV6ZxsXkkvOkHGNJDnPhxAYtBkngFxgJGAmr1CrIKQggCj4mYLKFtQZM5whZaJpUOye19rOP7T62Q+2W0Lc9UKXjcCN7k/7h06J33XZXmdedMPc2VMuv/jU3TT8AyBiRMQZS2dyN/768TuvvdC1eEu3yituCc4kV8Sbqtkdx8ZGlsvHP4OMcR5azV/f5tgRRziWsYRhhERZLzShL5QfeAUvn+dhkM96TGtAJjgTFqW1ndeyocapr3K29ATVJWLByty9r3UeMLayO0OBAsaJGFkW7+zXqf7sDVddcO+jr6zfuE2I3eWj3eWgIvtc9rN7k4nYdT/4RiGTX7o9/N6z2dKSiLS5lCLpipjNPOKlJa5lc20MM8rRYZzphNAxaZIWT9gsaktLcscSUgIhhIqC0OSVSWVVqoBdGbOlL9yWNkOrnH1HRBatT7+6okDGlLkYBqaQ08xoYXQ6Gx44LnrrBaNtN/boX15dtXLFCw/fsDvaenfTHYgkOP9s3eaPV7S88OD1vamcFHzcYKehPN8eQrnFpeAkeJZLAZhNZSos1VSCo6pFY4U7pLwkEhEAoAz0pPM9/YVUuj+VDkOlheAR10pEnGGV8YqmymTU4hyyBdPWmWvell+5pT/sDxpLoCPLe/LACC0pAEgZ1IhH7lVpC97blz79pCPOefOD+W9+dNShe++OoO0WBxXZ57wrfr33lKZzTjsilcpIaSWj8q3m3I0LAysRj7pCMFPK1ORStVctHz8sXpKMAEBXxv9o1eZPV7a0bOrs7Uv7nmcJIQSzLVGMWhFRK2WMISFj8UTd4KpJTfXTJzSMHlbuCJ7L5rZ1ZFds8d5YlX53g9+RY6g0Dwqn7VvynTlDg9BoA8lk7J0PV7z40uvzH7vRGPxqObbd8oOQiDO2YdP2i3983xN3/0gbJYSwpOQcYq74aEP2xdUhAJ8+VOw73K6tjgOw9pT3ysJlry5c2tGdKS+Jjh5WPWXssFH1g+uqy8pKYq5jffH6RJgr+D192a0dfeta25c3b21t6yEQ40YNnT1rxqTRdVFpvEKhtdN/e2X/5s7CxGGRgyaXKoW+IiRQBqsry775/Vt/dslJh+w/DRHFlxe03QIoCLXrWNf/6nEurCu/dXJ3b8p1HCmEFIxxFnU5EIEBkBxALG/te+AvC975YGVdZfK4WVNmHzBp5PCa/wAHIgEgIn0hQc0544zDzjxGKuMvW936woKPPlrZWlFWevKxs/ad0VRi66hFvtKBMum8UhpDRZogVFhdWfrC/PfWr13zxzsvDwJl219an3x1gIxBKUVbR89p377jtzd+u25QqTEohbAE55xLLrhkRAZB9vv0m4fnPTXvvekTGi467YhZe40qbldrjUhfLF180bWjHUUOMkRGExISMSaYY1mW5G2d/c/M/+jRZ98uLy+/4BsnTB492IFAGwi0CkITatAIWiNw7kjxrR/ccv+tF0+fNMYYw75k2v8rmnmDKKV45sU39z72hzVDho4YXl3wgmIWnoABkBCMyBiwVm3qOen8a+e9/v5vfnb+k3dcfMiMkb4fer4fhiEACMEF55z/B3RoJzaMAQEw4JwzwbkUjAhyBb+7LxOx5UVnHPHcH34yuWnoj67/7SPPvZ/VjiWYJaUtBees+Oy9QJUm49OnT5p1zKW/vufPQgj4b6pL/4C+NNcVeefntz941/OrKg/9+jEHxNBgEZfinbnghrQB+7VPWr579S+PO3T6zZefURZ3sjlvJyii+BiJiBWR+O9Y+L+tk3HOBBfamJ6+NOfip5ecdsDeEy796e86OrsvO/+ECAu44IIDY0gABNSf8w/bd9KivvJrHnlryfK1D/3uOoMGAHY9/fjlOKjIO7f95k93zVs35uvXe741fkjSU4YzBsSIiDMAIo3y7cUbL7ri9u+cM+d3154bs1gmWxCcJ+KRaMSxHUsbREQAoJ1x3E722XEjJLYDFPi8eEhgNBojhHAsmwuutOns6pk5qfHx+3781puL7ntkHlkRDsQYMAAC4ozlPFU/uFQba8IFd7y6Cb552U1CCPwyTPQlACoa9Vfe+vT195adfPGVqzd7NTI/vLbC81Vxq5wxzhkSbO0tfO+nv/rWWUddec6R+bznK5NMxhzXWrGy+Z2FH7Zta4u4jhCiqJJ3rvZzEWOffwL0BcgQXccpL4kHvtfT0+04dnlZqRCiP5OvLo3d/6urn35uwStvLo7G4kAIAAwYZ8wLwrLyslGluGhZ10HfuLxle/89Dz0vhTAGBx4gzpjS+q4HnrvyknPbszzmqlGDRSwWCbQhAIPIODPGgOVcc9sfaweVX3HB13K5gjKYTEQ/+mTZoYfPnTz5iFmHnDJ5xpGXXnq17/tCCEIEICRezCwSIQASARAhARIRYRGdaDTS3tF1/kVX7HPg8fvOOuGoo07502NPRONRwXk6k68fWn3hOSff8IsHejK+6zrEgHPGmAhDQ0yMGRxJ2MGKTbnvXfatPzz2cldPSgi+i8poVwEyiJzzt95fWVZW3jR+9MjhcOFRiSnDJIEgMkhEiIBG2vYHS9b/9aWF55w5V6IOQxOPRT7+dPnso05b+NYHBx5xUE3DsL6Ud9ddvzvptAuU0jsZZyfvAENiwKC49uIeENGx7Q0bNs7cZ/YD9z26qbW9pyv78Seffev871137U2xaIxz0Zfqn33IfuSWPfT4y2XJBIe/gZz19KjBkX/bPzp5bHxIw5Bpk8c+/uxbjDGDu8REuwpQca2vvL3koJnjozE5riHpcFUZsxEAEYAYAzAGicsH/vRs7YixE8cMDYKAS+H7wUWX/DST6r/n93csfPXPzz72Gzvi2NXDXpv32p13/d62LWNM0Q2iHUYQCP6D58EYA8BTz7p4xIiGltZP/vLE3ZFY1EokrIoh9/7y3r8+/Uw8mQwCHXX4QQce9Nizb/VnMsmYi4gExBjzFVUkY4x0/dBkNCKPmjXz7Y9Wwy7r6V0FqOiGrt/UPmXccE9DXrPudBB1LUOAiEhkCJiQbZ39b33w2fS9941ZpBET8ejLr7659P2lkaraU08+GgDKyspAWFobHq+694E/ZzM5y7J36CLaqXIIdlp6hogR13751TeXffTxfb+7o7F+6NyvHVVWValCBZyxSOlv7n0gk8lwIYxW48Y09PTo9z5aUVYaRyRCBsACjfG4k874HRlsT6up4xrbO/s8z5dC7IqQ7RJARMA594MwVwhrayo2d/qPvdH/1Bu9lrCIgAwQkkZjOc6Hn67oyrDqwYM5GUTiHBa88S7jduCr71xx8x8e/usp3/h+6GnBLOZEt23q+GTJMil5sdYOOxX253atWM4HgBdffoPz6NPPvda6aetV1/6yfVuHjESMIRZNrl+/tXnVatd1ldYVpREWq1jw7hLXthjjhsAgBAqjrrN4TeGNT3Jrt3ulpTFEau/sK95wYAAqXiif9wlYLGI1t2RWfpbv6/YZcYOkDSKQQWBcLl6+1klUWLZNwACY76t1G1pJWiLiPv7nFy4478pVq9aLWMQQSC5AmeY16wD+Bsfnb4sfAgHnQmuzunkDOqXX3/b78fudfMut9zHHIQLGuRQClNrQspELqQ3ZktuJ0hXNGwLfl1IojRrBEAjO85mgbXth49Y0AjJppbMF+IJX8XfoSziKSASEhUBro0RYUF6gjCAkpVFrBA5E1Lqlw44kcoVAISEwFWo/1GDbjJidLGGcIRpCZLxYFxOFgr/jCfynxRIBMCRijPt+mM7kQXLHdfxAW4kSJNzhJnEAgnR/hpAbhIIfWG6yo3tdKtVnSSdQXqjRRSIADBUzhcDTOT9q2VLv4NkvRn7/Pe0iBzEAiLi2EKw354PRppBRBa+3P88ZhEiBMirUWpvunjQXdirt5X1tiJgQJSUlEK9g0iIATUSMAefAOXIBQpaXlXwBk78RAmgCTWQQueBuxAbgBFxKq1jSJs6JMZAuJMqikWio0Rjqz3iM23kP+/pSlpRBaJQxDCBbUF4+JC8f+F5/1uNA8ZgLALALenqXAGIMiCgei3CAzdu7LWGYKlCgOntyjPNQQ6gh1GS08v0QmOhKBd39PhlkwhrbNEKWD3VLaoxRnEvOJQEnYIxbMhGZML4JqRiIAe30nokYIANCIlJau67TWD8MALgUBgA4Y4wzJlAHsdqxseqhNYMHFfzQIHR254iQCPyCL6VUBpUmzqE3XfDyPlOFqMTe/lzoeRWlCfiHzLPrAAFA0fWsKos3r29LuMwiD7Te1J5jQBpBGQh1sTKGOgx60+GaLVkAynrqsAP3TkSdqmlzIiVVOvRCpQiworLSdpx9pzdNmTTB80IGHIAZIqTiKyFQMVIjRAA46tD9QVBpaZkUTKMxiDrIJuvGxEbu11BbNWJ0UyabU4Y2b+9lQAiMcUBDWpPS6Fqisztr/EAYvzwm2zp6LckqykuIaFcs/S77QUAAMHns8KXLmqM2xIQCNOu2Zjw/ZCCUNr4yUvJ41Am8gpf3VrT2hwbS/enp++w3Z6+qdL4w/muXNs2cNWb0yMmTxtfW1liq/ydXXmw5jjLaAAGg61hKa6VNqLUBchwbCIiJvnTh+DnH7jOlgZEe3zSqblBlZVXFyKmzxh31Ta9jzb8ds3+stNoY058LWrf1CAGMdDzqFvxAGW2Qoq7cuDUFmjkQDC5zlq9sqa+rFkLsVEMDBBBnHABmHzR1VXMrKn9QEhhnGzsL27tTluRBaLwAGRP1Q6q1V+A6WLGhZ0t3wJhIZYMrvv/dwyq3dK1+N1FSVjuojMJsvrv11msvOeSQg1OZPBfC84LD51696MNVZcloeTJaURIrjbnfvfK319zyUDwRzXk+WO4v77xxcBLDXN+oxiETJ4wbNLy+fdmLc6dEDzv6+L5U1rad1ra+9u5+QSpqUUV5aV/GU4Y454BmZWsfs3h53FSVWAsXLT78wCm7uGvYdSvGOTMGp00aVVUWf++DxVNGDV+6rr3TV80b2saNG9ufzRukUNP0iY1/euEzUN72LvXqx20nH9SYLfgRx77mxz/65P23lyxdFvixwdP2Oeroo8aPG9/bn7MkD3wVj0X3mTb6qBN+cNyJBzfU1ypl3lu0rPmzjU8+9vO8FwDj2XxueMPI+39/z8MPPdTS0mL8fJXrn3Ly/jMOmN3b74WGhBTvL92ECL6XbxxcWlZR2fnZFo0sFrFSqfS6No80Ng1Nbm1paW/vOOGYA4loFzOwX8LMExEA/9llp59+0Y3nfe+ScaOSa1f3vPVRy/Sp4wNFwGBbd+bg/SZZ8i9+wQMn9tw7G/YdX2dJlvOD3gxN2u+og2bPcSQ5DldB0NefllJqQ0CUyXk3/OT8mTPGPvHM2+99uJoRTJs08t5fXT6icWg2mwcABjydziTKq664+tp0OlPwAm5H0x5s6UwzAtu2N27r+3R5Szwe62jdfPApExQ4fXllCMoT7qrm5t4CDRtbOm1k2e2/vOmKb59Smkzsep3jy6Vci/0bP7np/l88MP/Qs75rIpVb3n/p3qu/llJu3lcCcM4BjceecfmiNVZVw5iMb84/YdKph49NZTzOGAAmYjLmckeCYwkpOHDGADgwYGiQShJxy5ZKGQAAzrK5QhAozrkxiEjGkDLoKwwVU5rlPJUtaMEFI4zE3Lsfe+Pdjz9LlpT3rnvr3adv8O1BHzR3EtDE+pJ7H3ghO2T/sqT78eO/3m9C1V8fuH7XK2VfOuXKOdda33D1Bd8/Z/Yr9/6ip62F1zW99d7ymspEwdeZgmntyP/4ktN0x7Iwm3YofOKVJeu29MYjNgAB415IyjBNTCMpg1qjMhgihoYIWG9/tq0r1Z3KdPSm2zt6C4WACJQySmOoMTSkETTyUBsvVF5IUgpAikUjn6zc/OGStWUVFR3rl55x3LTxEyYuXd8JDKrKE9u3tnWxMleqF++85qDx5U/cd02xoXHXt/wVkvaESEKIF+cvvPrGB9fn4qUy+NM9V29LYaAMJ3P6EWNuuPU3t94xv3zKoZ4yI4eU3/qD4x2Lh6GRUrg2d21wbSY4YwCMUdHLEoIDsB1BGCIAK+aD0BASKCQ0ZAhCTX5gCj4FCghYLOJ0dqdvvPuvHvLe7Rsb4z1vvfC7xRuyn23LEsDM8XU33/K7dz5pGRwt/OjiEy6+4NSiF7rrAO1GVQNRChGE4V+ee/OO3z5d29hw1Q8vXrK2U3BR4tCph4/68XV33n7Xa9HR+4Owpo0ddO13j5WC+YF2HCElOBIkZ4xxzoizHdnIYlqDkBXTjAYJiZDQEBgkrYkIlCE/xCAgX2E0Fkml8798YP6W9r5Mx4ZJtfjMIzd15uTbK7YzLkcOr/ps+dJ77rr/0nOPO/fsE2qqK4zBYnVg17e5W3UxY1AIzhgreP7Uwy867vijjzjyiNUt2y0hqhLWCQc2vjjvpatufKy1NwqRmpkzx1190WGDKuPZbI5zsiQTnEvOOd/hzjLGBAMEQmI7Y1ZAJERjkBkCbYxBUooCZRhINxL9rLX7tw/P37x6VVm0cNZxk6+64ptrt3uLVnYAF4Oq4xTkrvzBtfMfv2GvKeMA4KtVn3e3w4wAtNK2bTWv2zRr7pUXX3zejL2mr9/UxRh3JB2+1/CkLDz+1MsPP/vB0uaMW113yXnHzJ41OeZIrRWhATIAVBSyYpGHCAgYAStWwogAiYoJfiQg4MClYbyrKz3v1U+ff2lBtVs4ZfbEb5x+fG3DyHeWb9vUniOg2uoSC4LLv/+z23989tmnHRMEoWXJr9ZFPTAteEVxW7Jy3Zyzfjr3lJOOO/7Ilq09OS9ExPrq+Iyxg6LCX9O8dt6CxW++typWWjF1+sSxo+sHDa5OxKOOLTnbkZYxaIppMtwRzBMQQ4LAUKCwUPD6Urnt29s3r9uweWNLVYlz7OHT99tvmpWoXtXSt3pTryYesfnQ2vK2La2/uOXX1152ysXnnrybTa8D1qNY7Khvad166jdvLK2sO/fc04SbSKVz6bxvlKkqjTYOKRteE48LvXXL5jXrN7d3pwIDxB0hrFgs5kSijuMIS3AuCZhBIjJGa98PgyD0/MDLZ7gJXItXlcXraioaGoc58bKOfr1+W19bd0YbsixZWhp3LXrt5QUfLlx41/Xnn3jMwUrp4oDIvx4g2FlQNGiuv/3hp+d9OHXGtIMPOziWLM37Kpf1wzAUkiWidnkyMqg8loxKixvQYej7oQqCIAxDpZQ2SAwAETkXUgouhG1bEdd1I45lOQpEQfHuTNjenU6l/dAgEzwScVzX9nLZ5hXLP3hn4ZTRdbdd9826wdUD0jA9wI3kiMQ5Y4y1bm67+/5n3lu8IVZa1jRhwtgJ4xOJJKLR2qhQG4NckBQi6sqoY0UcGXNExBGOLTgwYIDAtCatdaAoH6iCp7xQ+6HWyhgCRYwxKW3JOfhBuHHdhrUrVnZsWj9+ROVF5889eP/p8FVV8n+lge+0JwA0RkoJAL19/fPmv/fB4uYF7y0f2jBm4tQpZeUliXg0Gok6rmNZkjMgAgYkOViCScEEZwhgEAiJEDWBMkTEFJIyREYbRC/Q2Wy2u6t7U8vm9cs+GTey+shD9j704OlNYxoBQGtTfEgDsp2BH6hjAMWSqTamorz07DOOa+/ubu2LtHR12NHNg4YOM0F7VWWC2xYBc92otKRlSduSQghLcGJMcCaKTR0IGlEZ1IbCIAwKeUBtDHZ29StFfib1yusrQVaMY/yi80/k3ApCJQUf2FkN2HMzq1IKY8zXL7r+iXlb3aZ9VcfqCRPG1I8ckc4UAj/wlOYMiAEihkr5SmmF2hjfDwiZlNKNSGlZjAkhGBFyBpFIxBgyxIY3ViTicTLh+5+s7XcaXljaPXqf8+Y/8fORjcP1gA4h7NjIgF+Rdta25l5w3cgRDWd/5+BHHlwQcTEZjwhmIlErHreijnBt7ggqT7rxiExEbNuSBjHUyIATQLGDRWuT8cL+XJjN+r6C0FCoCRjXBoXjVFcme9ZsGL//jOMPPOT4b1z33IM/GzNq+IAP/AwwQARQHEw989s3j20addOVZy34YN3DD9GgmmRTQwWzRHkiWlcZHVzuJmM25xyQCqHWGi0OjmRccOA7/EVE8DVpE7Ukl5wpTRlfdaWCtr5ga1fOjVgTJtR/trRjyoj4GcdNb6qLnfmdW5++/6f1wwYP7ODYAANkjLGkvPzae2tqKm+68qyevsyEkYPLK8T+00ccNrNBhUFpzOUcDEEYGGKGcxZ1BYDI+GZNN7b26FRBAUFZlDVW8DHVdjJigcGspwAo7vD4IHd4pdNb63garCNnPP388gOmj6hL8olzZpZF+ZnfuWXeozeUJGJfKiL9+zSQABmDlpT3PTpva2fqqXuvzmQ9KaTt8GGD3RNnT6kscbt7w0Cj4CA4J8YjDgCj9zb685rp022sPcOzPgSaozKMtAvBkKh/UD2eeUDZxIayIDBBqI0hbXTU4XFXnHDg6EmTh9VVRZOxSF+qMOfwGW2dPedeevuzD16vtRFiYAAaMFYsStbKz1oe/suCe265JO+HrmMzBpl8WFc3aNyIumzOJ8YAkDFAANeBNZ3hBY/nL3yKPb3Sbel1s4EkIpuRANKKUnmxbAu/7cXcgVcuu/yexX0ZXxSjEsYJWM5XjiNnTqrv6s4YwljEyea8b515VF3d4Bt/+aiUX6ID6O/TAHIQGWN+dOvD1155blkiGoSKMdCI67f1WdIeWl2S98NiszIii0XkBxtz5zzmhRAXnAsZjK2BqbXUVAWVMU7E2lK0eJNeuDJozqi8du58ZGPcNtedP7PQq4ntcNm0ofEjqlevbzdmPBqMuE4uH9z20wuPOePHB+6z/KB9Jw+IMhoYgIpxxm//+NyEcSNmHzDJK3jRqJvJBhpx9cau8mQ0FnNS2bxjWcA5cNAaByWEw7EvWzhsDFx0YHTW6AgAA8C8T5xDxI6cuz8zpuyRtzpvfnzjttA6+ZBGz1PAEJEMEnBWCNSY4RXvLN6Y9zUjcB0r5ggQcMNV59x05yP7zBj/FRqj/ysNAEBEJATv6+2799lPRx974dlPdJ04PblPrYkBKkOtbZnhQ6uKzUzEkIgTka9MY437/UPyBc0unlUBZJ74KP1Kc9jSTZmAkPG4MGMr6ZTpzjmHDz1xZuVby9pH1ZYUAlUs2CMAAXleUFtdms56Xan84LKoQdOcgT9/kt3YN7QZ6x97cv45Xz9u963+AABkkCzJ7334xZ7SyTpdVgPhZ2nrhRWZsVb29H1LOvu8SSOrlNYEQAjEEIhxzrI5c8ZeZbYjnl/Sf/PLveu6BDELgBNDTUZrWrwueOzN7fsP33Db2SNPOqi+N+URECKZYuMYUt5X5aUxJOhL50i6v36tr6aubJMXeW9dzqqf9asnHpg75+B4Ir6bFm13ASIiKXg6nX7y7Q2lU86RVKhKRlNps3Jj+My6PkSTTWfKo1aosdgdZQgYEgECMMHly4u7z7ynw4lEjNalkWBktVVTZqHBrT1+8+ZsVqu330/9oZpNHVFijAHGDFGxZYsM+qFOxmMxR2zp9W5+p39pjzjWCeKOVeIaxUo30rA/P/3qN8+dq43ZnbB+dwEyiJaUL7/+0VY5dJAVZ6BDQ81b/WxOO0I8ML8r3pcqTzqeMkhMIwAQY8iRA4O8r/cemZwwqG1NZ+q7R1SfO6u6sSb6OfBLWtJ3Ptf6+sd08ZxGLzAIDAk0EiEZQ9qQHxpivDzu3v9q/2d+orIK1mwLB1WAEDyTz7vDZjz2+svnnzVHSOvvbWBPA1QsHL20aI2smhbmC5ESuyetfU/pUEuCju6C6EjHYxHf14bAIBZrTcSQMxYiJKP2z06sti1x2JTapRtTt76wpaVTMcDxtfbcvav/9INpi9cOGVYVL4SaAIwhjWS01hpDTYFCIuKCv/N+Z92UYaGPmYIOFYShRh06kYrVLfaylWunT5u4O+ZstwAiAil4Nt2/vD2Q5XE/kxZ2WZp8Y5gJlDGAYdpW/VxaodJGGw2cgHMg4IQMOOP9Wf+QcVVZX1949/InP+n3lNRGECJo9fPHWq49dehFRzd0pQMk0mgMMWNMsaYWKhOEOlAkOWPpVk17h6GRPnleGBZ8VMoo33cHv/3R6unTJhabAf8lABEA27Ktq1dFINRhGJJlycBioa8ggoybXKegwHWlF2o0hnMGjEIgSSA5M2AAmKf0xo7s429uDUVUcB2zrdBAgNTTGXT1+74yoTYIYAwZNIikNSpF2pAXKKWV47rUu1EHAYtECrmC8gNj0PgeBYq5ZcvXtcCXGTwYaICAACCdzvm+jiBqr4BSeL25pBvYgyYF6Rz0b8iDWLYdJ1TpnK/E51NtnBOCAAYAWU9Naii98mtDHn5j23dOHDWtsVQbenVZ36fres87sj5VUAbIGERD2pA2JtSktSkEGsj0ZP2NKca8raq7VSYnIgv9zaugvIFCD5QWtkxlg38lQMXbRiIOFXq4y01PAJYTdLTopgYppcn1Br3rIhUjF7b4bT3+zCGWNsYQODYHIuKwM3nDurPh6bOGf+2AumEV8SDQnMPUxmTGq9OGjNZEgAY1otKkDSltAoWc9Jbu4LVN/R15Ip3T7R/r2jEs7qpMp7QrDCPBGOhC3Oawk9O/2h53y4lijBPRmNENFbobROiUlJjQB50rbO8wHgatHziYLYvbHMz8Nerml1KdGXQtppRWymiDoTbKGIUYKsM5xFyrPVVIeWFvPuzs9zxfBWEYhjoMTagx1Kg0BsogkWuxN1dmbn2uZ1uaAHV5VVlh8yLdsy7MhpjrQYM61BXDqwtbVu41fijsXkJ5NwECYzAai54/94BtL95fNjiarBvEKex/94m2p67xV718zQ++MXRwRd7XFQn73Q3B5U92vr46bwlmCQpDpUKjNRptjDFK6cBXaIzWWmtjDIYaA4WhJl+hr9APUWu0JfTl1J0vbL/5uR5FkEjYXb09l14458AZDel5t/W9dKO3fXUkYdeOGZJa/0FlfuPXTz2adhT+v+oedzNpTzunKS+85JYHn/4QSgZDruPQfUc6YI477tCL/33O6Fk/GjzzyKbp419/vy0TGCA8YHT0jJml04a7goOvTKiBiDHGisXU4igTEjPFDn4kAJCCScH6cuErS/qeWtS3rQ9sSU2N8Unjq5666757fnDQnGMOvPSHd6bzhdXr2jZ1KogkaljmyYd+evB+U3ZzLHwAqhoEVByrXLho8ZLFqydOGXvYQXsV/2R0MHPONRv9YROmNuQSjW3teSkp4xlH0N6NkaMmxqYOi1bEJWdgig0xhnDnaAswEIwIWN43m7u8j9Zl5i/p3diuLce2bdsIMXaIym3b1rZmxW3fnvntC/6teMeunr7n570tOD/umIOqK8t3M6AfwLIPFccVir8gIhEhgSXYASdd1V97+KZla51kRNROAMcFExpj8p4Go2tLrXFD3bG1TkOVUx6XjgRLMCLwQp3O645UuL4tv3JLYX17IZ9DIYXtSBKW4baVb9PbP6seORlza66dO+r8c08JQiWl+GJUsfvpjgEs+zDGQBtDSIwzUZxDRQLGo7ZI60J8UEOqaztrfl+W1sqaBiGtuIXEeEdKt3ZnXvrESA6uJFeSLYCQfGVyHqoQwRgQYNkyFhXEpWES8yno26jRYGJErGZwKrUsHo8wxqTggnNELM45Cc4HJDM9kClXwfkXlX6RK5Nxu5OCiBPJldcyQapzk+7dbJXVidI6kq6wKGYZYQg1ak2ZwCAiEDEOjDHXFYxJJEbAFBoq9GH/FqYDq6JelNaFmbQTkajDspIkAHw+vzmAR3TBHj3LtQhQZVlixfb+SKIW+7ucSKmon2oKvbqrNehYLxLVUDKI3KSRkgvJQTPBdvgtBGQQCQgNBjnm91OmnYGxqkeLyuEAHIMcMYjGHfDzFRWlsEtjBV+F9vhRpXXVZamlm0cMncK2cgaAqFms3Gms1KntwdaV1LWeWy45Ue4kwI4Z4sQZIXGGLCyQn4bQYxQyALt6hBg6iawYKJ/pUDPmulYiwiD0qqrKAeAru4J/n/YgQMVHOmbU0ODxT2sHJ9asptD3wbIFF4SaJ6rcEfurjmaW7SI/j4Uek99eEpdEIDjzvcDDuIzXMOmCleTlw0RNPROCkUJEE2hV8IYNi6POxyyqqamE/4kcVMyEjGtq5CoX5NKxUhkyZtDLZnJCOLZrEUdZ3YjcYkEeVZjEbYueub6iokwK8cCjz/3wpgXO8JFhmOfJGh4vR+UROGEuZ3GMxCzOWCImtyxbOmpYdSQS+crHl/xD2qMiRgDAAHwVrsmw+sP2GV0Xq4rzdF/6nYWt29b3CobEgJfVmnS7ym+tKo02jRlZDCwnTRhD9KxmxGLlwokxE6BGBsFeew+dsHdjOpTdfX4m5W9vXj7M9ffkFvbkke1F1+qOe/4Cow9g8Zrulu6N61O9PUHj8MrDZk90SpMcgAExzmTJIPAy9XWlABAECpHqh9VadmiIRLQCimc0cD5ozOi9D5sopJ1qz7W3pHu2pMpnzH5zgz/v5beF4ANVCPtPtKcAIiIpRW9332tLNicqxqXXbcpnPURM5cyDz7XOX9DCBWM2BzIEKCNR5vXsO72JMWZJzjkb1Ti0sa5C+wVmOUhEDKxotJAPX3xl8/sfd0ddCxG8VNbb0sVqmh586rU9tAvYcyJWtPEdPX3tHf2lw4nbFhna2pFp684FORXkChgqAsktBmDC7nUUbB88YvSn6zoKXgBEiURs5JjGtfPfZzXDmRPjQpKGIOsZ4gZpxbo+7SlinEmHF9TGzdthj52/vacAYowjUkP9kGkjyj5d8EfetJ9TXmPlyhgXFIYQ+Cbfr3OpMLOd+jZBuu3IEw4vr21o3pxinKFBmQqPOPqolSvWbll0L5TWi/J6WTZYJiuUVxJmHM6FKuTCvp6geyOsfvP4H8+FHXMkA4/RHjxPmog45909fXf//i+vLVy6aXt/NuCh1mhCzkgydB2rpCTZ2Fi/14xpTeNGISEAZ5wBASJyIQqev2LZypXLV23atDmTyYXICSwkEJxFbF4WE+NH1Jw6d/aZc4+E3Usb/t9ojx+4XZwxKL7v70+n01nPDxBRSGk5ruW40na5EKi17wec/e1QCgCGiJxz13UZF6EKlOepwDMqICIpRCIRKy1NRiORPbd4+Occ2U5EBnGgQsf/RMYYIvoffGT7F+nz8wKKty6+7KJU0N9+7Ph6kS/39D8l+acC9D+RBv7A7f//6H8B+gf0fwDxFGnVOp8OzQAAAABJRU5ErkJggg==',
+};
+
+// Set header logo after SLIDES is ready
+document.getElementById('headerLogo').src = SLIDES.sonobo_avatar;
+
+let quizScores = { correct: 0, total: 0 };
+
+function slideImg(key, caption='') {
+  return `<div style="margin:14px 0;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15)">
+    <img src="${SLIDES[key]}" alt="${caption}" style="width:100%;display:block;border-radius:14px 14px 0 0"/>
+    ${caption ? `<div style="background:#1a2540;color:#aaccff;font-size:0.8rem;padding:8px 14px;font-family:'M PLUS Rounded 1c',sans-serif;">📸 ${caption}</div>` : ''}
+  </div>`;
+}
+
+// ==============================
+// SONOBO IMAGE
+// ==============================
+function sonoboSVG(size=72) {
+  return `<img src="${SLIDES.sonobo_avatar}" alt="ソノボ君" style="width:${size}px;height:${size}px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(26,111,212,0.3));animation:bounce 3s ease-in-out infinite;" class="sonobo-avatar"/>`;
+}
+
+// ==============================
+// HELPER: chat bubble
+// ==============================
+function bubble(text) {
+  return `<div class="chat-bubble-wrap">
+    ${sonoboSVG()}
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      ${text}
+    </div>
+  </div>`;
+}
+
+// ==============================
+// HELPER: quiz
+// ==============================
+let quizCounter = 0;
+function quiz(question, options, correctIdx, explanation) {
+  const id = 'q' + (++quizCounter);
+  quizScores.total++;
+  return `<div>
+    <button class="btn-quiz-reveal" id="${id}_reveal" onclick="revealQuiz('${id}')">
+      📝 理解度チェック！クイズに挑戦する
+    </button>
+    <div class="quiz-card" id="${id}_card" style="display:none;margin-top:0">
+      <div class="quiz-header">
+        <span class="quiz-badge">📝 クイズ</span>
+      </div>
+      <div class="quiz-question">${question}</div>
+      <div class="quiz-options" id="${id}_opts">
+        ${options.map((o,i)=>`
+          <button class="quiz-option" onclick="answerQuiz('${id}',${i},${correctIdx},'${encodeURIComponent(explanation)}')" id="${id}_opt${i}">
+            <span class="opt-label">${String.fromCharCode(65+i)}</span>
+            <span>${o}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="quiz-feedback" id="${id}_fb"></div>
+    </div>
+  </div>`;
+}
+
+function revealQuiz(id) {
+  document.getElementById(id+'_reveal').style.display = 'none';
+  const card = document.getElementById(id+'_card');
+  card.style.display = 'block';
+  card.style.animation = 'fadeInUp 0.35s ease';
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function answerQuiz(id, selected, correct, expEnc) {
+  const explanation = decodeURIComponent(expEnc);
+  const opts = document.querySelectorAll(`#${id}_opts button`);
+  opts.forEach((b,i) => {
+    b.disabled = true;
+    if(i===correct) b.classList.add('correct');
+    else if(i===selected) b.classList.add('wrong');
+  });
+  const fb = document.getElementById(id+'_fb');
+  fb.classList.add('show');
+  if(selected===correct){
+    fb.classList.add('correct-fb');
+    fb.innerHTML = `✅ <strong>正解！</strong> ${explanation}`;
+    quizScores.correct++;
+  } else {
+    fb.classList.add('wrong-fb');
+    fb.innerHTML = `❌ <strong>不正解。</strong>正解は「${String.fromCharCode(65+correct)}」です。<br>${explanation}`;
+  }
+  updateProgress();
+}
+
+// ==============================
+// HELPER: SVG anatomy diagrams
+// ==============================
+function lungDiagram() {
+  return `<svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:12px;background:#0a0a1a">
+    <!-- Bat sign / B-lines -->
+    <rect width="360" height="220" fill="#0a0a1a"/>
+    <!-- Rib shadows -->
+    <rect x="60" y="20" width="40" height="20" rx="10" fill="#333" opacity="0.9"/>
+    <rect x="240" y="20" width="40" height="20" rx="10" fill="#333" opacity="0.9"/>
+    <!-- Pleural line -->
+    <path d="M20 80 Q180 95 340 80" stroke="#88ccff" stroke-width="3" fill="none" stroke-dasharray="5,3"/>
+    <!-- A lines (horizontal reverberation) -->
+    <path d="M40 120 Q180 132 320 120" stroke="#4488aa" stroke-width="1.5" fill="none" stroke-dasharray="4,4"/>
+    <path d="M50 155 Q180 165 310 155" stroke="#3366888" stroke-width="1" fill="none" stroke-dasharray="4,6"/>
+    <!-- Bat sign overlay -->
+    <g transform="translate(130,90)">
+      <path d="M0,0 L-70,30 Q-80,35 -70,25 L-30,10 Q-20,6 0,0 Q20,6 30,10 L70,25 Q80,35 70,30 Z" fill="rgba(180,200,240,0.25)" stroke="#88aadd" stroke-width="1.5"/>
+      <path d="M-8,5 Q0,12 8,5" fill="rgba(180,200,240,0.3)" stroke="#88aadd" stroke-width="1.5"/>
+    </g>
+    <!-- Labels -->
+    <text x="20" y="55" fill="#aaddff" font-size="11" font-family="Noto Sans JP,sans-serif" font-weight="bold">肋骨</text>
+    <text x="270" y="55" fill="#aaddff" font-size="11" font-family="Noto Sans JP,sans-serif" font-weight="bold">肋骨</text>
+    <text x="220" y="78" fill="#88ccff" font-size="11" font-family="Noto Sans JP,sans-serif" font-weight="bold">胸膜ライン</text>
+    <text x="230" y="118" fill="#4488aa" font-size="10" font-family="Noto Sans JP,sans-serif">Aライン</text>
+    <text x="14" y="170" fill="#888" font-size="10" font-family="Noto Sans JP,sans-serif">深部（肺）</text>
+    <!-- Bat sign label -->
+    <text x="112" y="150" fill="#aaccff" font-size="12" font-family="Noto Sans JP,sans-serif" font-weight="bold">🦇 バットサイン</text>
+    <!-- Probe indicator -->
+    <rect x="160" y="2" width="38" height="18" rx="9" fill="#1a6fd4" opacity="0.9"/>
+    <text x="179" y="14" text-anchor="middle" fill="white" font-size="9" font-family="Arial" font-weight="bold">PROBE</text>
+  </svg>`;
+}
+
+function lungPositionDiagram() {
+  return `<svg viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:12px;background:#f8faff;border:2px solid #c8d8f8">
+    <!-- Body outline -->
+    <ellipse cx="150" cy="60" rx="40" ry="50" fill="#fde8d0" stroke="#d4955a" stroke-width="2"/>
+    <!-- torso -->
+    <path d="M80 120 Q70 240 90 280 L210 280 Q230 240 220 120 Q185 100 150 100 Q115 100 80 120Z" fill="#fde8d0" stroke="#d4955a" stroke-width="2"/>
+    <!-- Chest lines -->
+    <line x1="150" y1="120" x2="150" y2="270" stroke="#d4955a" stroke-width="1" stroke-dasharray="3,3"/>
+    <!-- Midaxillary line labels -->
+    <line x1="90" y1="130" x2="90" y2="270" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="120" y1="125" x2="120" y2="270" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="55" y="220" fill="#888" font-size="9" font-family="Noto Sans JP" transform="rotate(-90,55,220)">後腋窩線</text>
+    <text x="100" y="220" fill="#888" font-size="9" font-family="Noto Sans JP" transform="rotate(-90,100,220)">前腋窩線</text>
+    <text x="135" y="220" fill="#888" font-size="9" font-family="Noto Sans JP" transform="rotate(-90,135,220)">胸骨傍線</text>
+    <!-- Probe positions -->
+    <!-- 1: upper parasternal -->
+    <g transform="translate(135,148)">
+      <rect x="-7" y="-14" width="14" height="28" rx="6" fill="#4a9eff" opacity="0.85"/>
+      <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="Arial">1</text>
+    </g>
+    <!-- 2: lower parasternal -->
+    <g transform="translate(130,178)">
+      <rect x="-7" y="-14" width="14" height="28" rx="6" fill="#4a9eff" opacity="0.85"/>
+      <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="Arial">2</text>
+    </g>
+    <!-- 3: anterior axillary -->
+    <g transform="translate(110,175)" style="transform:rotate(-20deg)">
+      <rect x="-7" y="-14" width="14" height="28" rx="6" fill="#4a9eff" opacity="0.85"/>
+      <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="Arial">3</text>
+    </g>
+    <!-- 4: midaxillary -->
+    <g transform="translate(95,193)" style="transform:rotate(-35deg)">
+      <rect x="-7" y="-14" width="14" height="28" rx="6" fill="#4a9eff" opacity="0.85"/>
+      <text x="0" y="5" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="Arial">4</text>
+    </g>
+    <!-- Labels -->
+    <text x="148" y="144" fill="#1a6fd4" font-size="12" font-family="Noto Sans JP" font-weight="bold">①</text>
+    <text x="143" y="174" fill="#1a6fd4" font-size="12" font-family="Noto Sans JP" font-weight="bold">②</text>
+    <text x="118" y="171" fill="#1a6fd4" font-size="12" font-family="Noto Sans JP" font-weight="bold">③</text>
+    <text x="99" y="186" fill="#1a6fd4" font-size="12" font-family="Noto Sans JP" font-weight="bold">④</text>
+    <!-- Nipple marker -->
+    <circle cx="120" cy="165" r="4" fill="#ffaa55" stroke="#d47700" stroke-width="1.5"/>
+    <text x="108" y="178" fill="#d47700" font-size="9" font-family="Noto Sans JP">乳頭</text>
+  </svg>`;
+}
+
+function heartDiagram_plax() {
+  return `<svg viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:12px;background:#050510">
+    <rect width="360" height="230" fill="#050510"/>
+    <!-- Sector shape -->
+    <path d="M180,5 L30,225 Q180,215 330,225 Z" fill="none" stroke="#334" stroke-width="1"/>
+    <!-- RV (anterior) -->
+    <path d="M130,30 Q175,25 220,35 Q230,55 225,80 Q200,90 175,88 Q150,90 135,80 Q128,55 130,30Z" fill="#2a4a7a" stroke="#4a7acc" stroke-width="1.5" opacity="0.9"/>
+    <!-- Interventricular septum -->
+    <path d="M135,80 Q175,88 225,80 L230,110 Q175,105 120,110 Z" fill="#3a5a8a" stroke="#5a8acc" stroke-width="1"/>
+    <!-- LV -->
+    <path d="M120,110 Q175,104 230,110 Q240,145 235,175 Q200,195 175,198 Q150,195 115,175 Q110,145 120,110Z" fill="#1a3a6a" stroke="#3a6acc" stroke-width="2" opacity="0.9"/>
+    <!-- Mitral valve -->
+    <path d="M130,108 Q160,125 175,120 Q190,125 220,108" stroke="#88aaff" stroke-width="2" fill="none"/>
+    <!-- Aortic valve -->
+    <path d="M220,35 Q240,50 245,80 L260,80 Q255,45 230,25 Z" fill="#1a3060" stroke="#3a6acc" stroke-width="1.5"/>
+    <path d="M245,55 Q255,58 260,80" stroke="#88aaff" stroke-width="1.5" fill="none"/>
+    <!-- LA -->
+    <path d="M260,80 Q280,100 275,130 Q260,150 245,155 Q230,155 225,140 L230,110 Z" fill="#2a4a7a" stroke="#4a7acc" stroke-width="1.5" opacity="0.8"/>
+    <!-- Posterior wall -->
+    <path d="M115,175 Q175,198 235,175 L240,195 Q175,215 110,195 Z" fill="#333" stroke="#555" stroke-width="1"/>
+    <!-- Labels -->
+    <text x="165" y="55" fill="#88aaff" font-size="11" font-family="Noto Sans JP" font-weight="bold">右室</text>
+    <text x="138" y="148" fill="#aaccff" font-size="12" font-family="Noto Sans JP" font-weight="bold">左室</text>
+    <text x="165" y="95" fill="#8899cc" font-size="10" font-family="Noto Sans JP">前壁中隔</text>
+    <text x="150" y="118" fill="#88aaee" font-size="10" font-family="Noto Sans JP">僧帽弁</text>
+    <text x="236" y="65" fill="#88aaff" font-size="10" font-family="Noto Sans JP">大動脈弁</text>
+    <text x="245" y="118" fill="#88aaff" font-size="11" font-family="Noto Sans JP" font-weight="bold">左房</text>
+    <text x="145" y="188" fill="#666" font-size="10" font-family="Noto Sans JP">後壁</text>
+  </svg>`;
+}
+
+function heartDiagram_psax() {
+  return `<svg viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:12px;background:#050510">
+    <rect width="300" height="280" fill="#050510"/>
+    <!-- Sector shape -->
+    <path d="M150,10 L10,270 Q150,260 290,270 Z" fill="none" stroke="#334" stroke-width="1"/>
+    <!-- RV (crescent shape on left) -->
+    <path d="M100,80 Q145,70 175,85 Q185,110 178,135 Q155,130 130,132 Q105,128 98,110 Z" fill="#2a4a7a" stroke="#4a7acc" stroke-width="1.5" opacity="0.8"/>
+    <!-- LV (circle) -->
+    <circle cx="155" cy="165" r="72" fill="#1a3a6a" stroke="#3a6acc" stroke-width="2" opacity="0.9"/>
+    <!-- Papillary muscles -->
+    <ellipse cx="130" cy="175" rx="18" ry="14" fill="#2a5090" stroke="#5a80cc" stroke-width="1.5"/>
+    <ellipse cx="180" cy="185" rx="16" ry="13" fill="#2a5090" stroke="#5a80cc" stroke-width="1.5"/>
+    <!-- Labels -->
+    <text x="85" y="107" fill="#88aaff" font-size="11" font-family="Noto Sans JP" font-weight="bold">右室</text>
+    <text x="138" y="158" fill="#aaccff" font-size="12" font-family="Noto Sans JP" font-weight="bold">左室</text>
+    <text x="95" y="183" fill="#8899cc" font-size="10" font-family="Noto Sans JP">後乳頭筋</text>
+    <text x="168" y="205" fill="#8899cc" font-size="10" font-family="Noto Sans JP">前乳頭筋</text>
+    <!-- D-shape indicator -->
+    <text x="60" y="240" fill="#666" font-size="10" font-family="Noto Sans JP">正常：左室は円形。D-shapeなし＝右室拡大なし</text>
+  </svg>`;
+}
+
+function fastDiagram_morrison() {
+  return `<svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:12px;background:#050510">
+    <rect width="360" height="220" fill="#050510"/>
+    <!-- Sector fan -->
+    <path d="M180,5 L20,215 Q180,205 340,215 Z" fill="none" stroke="#334" stroke-width="1"/>
+    <!-- Liver (right lobe, echogenic) -->
+    <path d="M70,30 Q180,20 250,40 Q270,70 265,110 Q240,125 200,118 Q180,115 160,118 Q130,120 100,112 Q75,100 70,70 Z" fill="#3a2a1a" stroke="#8a6a4a" stroke-width="2" opacity="0.9"/>
+    <!-- Right kidney -->
+    <ellipse cx="175" cy="145" rx="45" ry="28" fill="#1a2a3a" stroke="#3a5a7a" stroke-width="2" opacity="0.9"/>
+    <!-- Morrison's pouch (potential space - highlighted) -->
+    <path d="M200,115 Q220,120 235,130 Q230,142 215,148 Q200,148 192,140 Q188,128 200,115Z" fill="rgba(255,200,0,0.2)" stroke="#ffcc00" stroke-width="2" stroke-dasharray="4,3"/>
+    <!-- Diaphragm -->
+    <path d="M50,25 Q180,10 310,30" stroke="#666" stroke-width="2" fill="none"/>
+    <!-- Labels -->
+    <text x="130" y="65" fill="#ccaa88" font-size="13" font-family="Noto Sans JP" font-weight="bold">肝右葉</text>
+    <text x="150" y="148" fill="#88aacc" font-size="12" font-family="Noto Sans JP" font-weight="bold">右腎</text>
+    <text x="195" y="135" fill="#ffcc00" font-size="11" font-family="Noto Sans JP" font-weight="bold">モリソン窩</text>
+    <text x="95" y="18" fill="#666" font-size="10" font-family="Noto Sans JP">横隔膜</text>
+    <!-- No fluid marker -->
+    <text x="55" y="200" fill="#44cc88" font-size="10" font-family="Noto Sans JP">✓ 正常：モリソン窩に液体貯留なし</text>
+  </svg>`;
+}
+
+function aortaDiagram() {
+  return `<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:12px;background:#050510">
+    <rect width="300" height="240" fill="#050510"/>
+    <!-- Sector -->
+    <path d="M150,5 L10,235 Q150,225 290,235 Z" fill="none" stroke="#334" stroke-width="1"/>
+    <!-- Spine shadow -->
+    <ellipse cx="180" cy="170" rx="50" ry="35" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+    <text x="165" y="175" fill="#555" font-size="11" font-family="Noto Sans JP">椎体</text>
+    <!-- IVC (collapsible, oval) -->
+    <ellipse cx="130" cy="130" rx="22" ry="15" fill="#1a2a4a" stroke="#2a5a8a" stroke-width="2" opacity="0.9"/>
+    <!-- Aorta (round, thick wall) -->
+    <circle cx="175" cy="125" r="22" fill="#3a1a1a" stroke="#cc4444" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="175" cy="125" r="16" fill="#1a0a0a" stroke="#aa3333" stroke-width="1.5" opacity="0.8"/>
+    <!-- Labels -->
+    <text x="100" y="125" fill="#4477cc" font-size="13" font-family="Noto Sans JP" font-weight="bold">IVC</text>
+    <text x="163" y="120" fill="#ff6666" font-size="13" font-family="Noto Sans JP" font-weight="bold">Ao</text>
+    <!-- Key comparison -->
+    <rect x="20" y="190" width="260" height="38" rx="8" fill="rgba(255,255,255,0.05)" stroke="#444" stroke-width="1"/>
+    <text x="30" y="205" fill="#4477cc" font-size="10" font-family="Noto Sans JP">IVC：圧迫でつぶれる（静脈）</text>
+    <text x="30" y="220" fill="#ff6666" font-size="10" font-family="Noto Sans JP">大動脈：圧迫しても円形を保つ（動脈）</text>
+  </svg>`;
+}
+
+// ==============================
+// CHAPTER DATA
+// ==============================
+
+const chapters = [
+// 1: PREPARATION
+  {
+    title: '準備',
+    steps: [
+      () => `
+        <div class="section-header">
+          <span class="section-icon">⚙️</span>
+          <div><h2>エコーを実際に当てる前に</h2><p>準備が検査の質を決める！</p></div>
+        </div>
+        ${bubble(`エコーを当てる前の<strong>準備</strong>がとっても大事！ 焦らずちゃんと確認しよう。`)}
+        <div class="content-card">
+          <div class="card-title"><span class="icon">🏥</span>エコー装置の移動・配置</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><span class="step-text">ポータブルでない場合は、<strong>コードを踏まないよう</strong>に気をつけて移動させる</span></div>
+            <div class="step-item"><span class="step-num">2</span><span class="step-text"><strong>エコーの画面と患者さん（検査部位）が同じ視野に入るよう</strong>に配置する。首を180°回転させることのないように！</span></div>
+            <div class="step-item"><span class="step-num">3</span><span class="step-text">ゲインなどをすぐいじれる<strong>適度な距離感</strong>（遠すぎない）に置く</span></div>
+          </div>
+        </div>
+        <div class="highlight-box"><span class="emoji">⚠️</span><div>検査中にモニターと患者さんを交互に確認し続けるため、装置の位置はとても重要。ベッドのどちら側に立つかも検査前に決めておこう。</div></div>
+        ${quiz(
+          'エコー装置を配置するとき、最も重要なポイントはどれ？',
+          ['部屋の中央に置く', 'エコー画面と患者さんが同じ視野に入るようにする', 'できるだけ遠くに置く', '窓の近くに置く'],
+          1,
+          'エコー画面と検査部位が同じ視野に入るようにすることで、首を不自然にひねらずに検査できます。長時間の検査では術者の疲労軽減にもなります。'
+        )}
+        <button class="btn-next" onclick="nextStep()">次へ →</button>
+      `,
+      () => `
+        ${bubble(`電源を入れたら、<strong>プリセット</strong>を選ぶよ。プリセットって何かわかる？`)}
+        <div class="content-card">
+          <div class="card-title"><span class="icon">⚡</span>電源ON ＆ プリセット選択</div>
+          <p style="font-size:0.9rem;line-height:1.7;margin-bottom:12px">エコーの電源を入れたら、まず<strong>プリセット</strong>を選択します。</p>
+          <div class="highlight-box"><span class="emoji">🎛️</span><div><strong>プリセット（Preset）とは？</strong><br>検査する部位・目的に合わせて、<strong>周波数・ゲイン・深度・画像処理アルゴリズム</strong>などを最適化した設定セットのこと。<br>「腹部」「心臓」「血管」「肺」など、部位ごとに最初から最適化されているので選ぶだけでOK！</div></div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">🫁</span><span class="step-text"><strong>肺・胸部</strong>：高周波数・Bモード強調</span></div>
+            <div class="step-item"><span class="step-num">❤️</span><span class="step-text"><strong>心臓（Cardiac）</strong>：セクタプローブ・低周波・ハーモニックイメージング</span></div>
+            <div class="step-item"><span class="step-num">🫀</span><span class="step-text"><strong>腹部（Abdominal）</strong>：コンベックスプローブ・中周波数</span></div>
+            <div class="step-item"><span class="step-num">🩸</span><span class="step-text"><strong>血管（Vascular）</strong>：リニアプローブ・高周波数</span></div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="emoji">✅</span><div>プリセットを選んだ後も、ゲイン・深度・フォーカスは実際に画像を見ながら調整しよう。特に<strong>ゲイン</strong>（明るさ）は適切に設定しないと誤診につながるよ。</div></div>
+        <button class="btn-next" onclick="nextStep()">次へ →</button>
+      `,
+    ]
+  },
+
+  // 2: PROBES
+  {
+    title: 'プローブ',
+    steps: [
+      () => `
+        <div class="section-header">
+          <span class="section-icon">🔭</span>
+          <div><h2>プローブの種類</h2><p>使うプローブで見え方が変わる！</p></div>
+        </div>
+        ${bubble(`エコーのプローブ（探触子）には主に3種類あるよ。<strong>セクタ・リニア・コンベックス</strong>。どれを使うかで見える画像が全然違うんだ！`)}
+        <div class="probe-cards">
+          <div class="probe-card">
+            <div class="probe-card-icon">📡</div>
+            <div class="probe-card-name">リニア</div>
+            <div class="probe-card-sub">浅い構造<br>甲状腺・血管・肺<br>3〜10MHz</div>
+          </div>
+          <div class="probe-card">
+            <div class="probe-card-icon">🔘</div>
+            <div class="probe-card-name">コンベックス</div>
+            <div class="probe-card-sub">深い腹部臓器<br>腹部・産科<br>3〜7MHz</div>
+          </div>
+          <div class="probe-card">
+            <div class="probe-card-icon">📻</div>
+            <div class="probe-card-name">セクタ</div>
+            <div class="probe-card-sub">心臓・肋間<br>FoCUS・FAST<br>2.5〜12MHz</div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-title"><span class="icon">📊</span>プローブ比較表</div>
+          <table class="probe-table">
+            <tr>
+              <th>特徴</th>
+              <th>リニア<br>(電子リニア型)</th>
+              <th>コンベックス<br>(コンベックス型)</th>
+              <th>セクタ<br>(電子セクタ型)</th>
+            </tr>
+            <tr><td>適応部位</td><td>甲状腺・血管・肺</td><td>腹部・産科</td><td>心臓</td></tr>
+            <tr><td>画面の形</td><td>矩形（長方形）</td><td>扇型</td><td>扇型</td></tr>
+            <tr><td>ビームの方向</td><td>垂直</td><td>放射状</td><td>放射状</td></tr>
+            <tr><td>接触面</td><td>平面</td><td>弧状</td><td>平面（小）</td></tr>
+            <tr><td>近距離視野幅</td><td>大</td><td>中</td><td>小</td></tr>
+            <tr><td>深部視野幅</td><td>中</td><td>大</td><td>大</td></tr>
+            <tr><td>周波数</td><td>3〜10MHz</td><td>3〜7MHz</td><td>2.5〜12MHz</td></tr>
+          </table>
+        </div>
+        <div class="highlight-box"><span class="emoji">💡</span><div><strong>周波数と解像度の関係</strong><br>周波数が<strong>高い→解像度◎・深度が浅い</strong>（例：甲状腺・血管）<br>周波数が<strong>低い→解像度△・深度が深い</strong>（例：心臓・腹部）<br>浅い構造を見るときは高周波、深い構造を見るときは低周波が基本！</div></div>
+        <div class="warn-box"><span class="emoji">🧴</span><div><strong>必ずゼリーを塗る！</strong><br>超音波は空気中を伝わりにくい性質があります。プローブと皮膚の間にゼリーを塗ることで空気の隙間をなくし、画像を得ることができます。</div></div>
+        ${quiz(
+          '肺エコーを行うとき、最も適切なプローブはどれ？',
+          ['コンベックス型（3〜7MHz）', 'リニア型（3〜10MHz）', 'セクタ型（2.5〜12MHz）', 'どれでも同じ'],
+          1,
+          '肺エコーはリニアプローブを使います。肋骨間のような浅い構造を評価するため、高周波数で解像度の高いリニアプローブが最適です。胸膜ラインを明瞭に描出できます。'
+        )}
+        <button class="btn-next" onclick="nextStep()">次へ →</button>
+      `,
+      () => `
+        ${bubble(`プローブには<strong>マーカー</strong>がついているよ。このマーカーの向きがとっても重要！`)}
+        <div class="content-card">
+          <div class="card-title"><span class="icon">🔖</span>マーカーの向きを理解しよう</div>
+          <p style="font-size:0.9rem;line-height:1.7;margin-bottom:12px">プローブのマーカー（突起または凹み）が向いている方向が、エコー画面上の<strong>決まった側</strong>に対応します。</p>
+          <div class="tip-box"><span class="emoji">🎯</span><div><strong>マーカーとスクリーンの対応</strong><br>プローブのマーカー（→）が指している方向が、スクリーン上の特定マーカー（⇒）側に映ります。<br>マーカーの向きを間違えると、<strong>左右・頭尾が反転した画像</strong>になるので要注意！</div></div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">🫁</span><span class="step-text"><strong>肺エコー</strong>：マーカーを<strong>頭側</strong>（患者の頭の方向）に向ける</span></div>
+            <div class="step-item"><span class="step-num">❤️</span><span class="step-text"><strong>傍胸骨長軸像</strong>：マーカーを<strong>患者の右肩</strong>方向に向ける</span></div>
+            <div class="step-item"><span class="step-num">🔄</span><span class="step-text"><strong>傍胸骨短軸像</strong>：長軸から<strong>90度回転</strong>させてマーカーを左肩へ</span></div>
+          </div>
+        </div>
+        ${quiz(
+          '肺エコーでリニアプローブを当てるとき、マーカーはどの方向に向けるべき？',
+          ['患者の足側（尾側）', '患者の頭側', '患者の右側', '向きは関係ない'],
+          1,
+          '肺エコーではマーカーを患者の頭側（cranial側）に向けます。これにより、画面左側が頭側、右側が足側という標準的な向きになります。'
+        )}
+        <div class="highlight-box"><span class="emoji">🧴</span><div><strong>ゼリーは命！</strong><br>プローブを患者さんに当てる前に、<strong>たっぷりゼリー</strong>を塗ること。少なすぎると画像が乱れる原因に。また、<strong>必ず声掛け</strong>を！ ゼリーは冷たいし、いきなり当てられるとびっくりしてしまいます。</div></div>
+        <button class="btn-next" onclick="nextStep()">次へ →</button>
+      `,
+    ]
+  }
+];
+
+// ==============================
+// NAVIGATION
+// ==============================
+function goChapter(idx) {
+  currentChapter = idx;
+  currentStep = 0;
+  updateChapterNav();
+  renderStep();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() {
+  if (currentStep < chapters[currentChapter].steps.length - 1) {
+    currentStep++;
+    renderStep();
+  } else {
+    // move to next chapter
+    if (currentChapter < chapters.length - 1) {
+      const btns = document.querySelectorAll('.chapter-btn');
+      btns[currentChapter].classList.add('completed');
+      currentChapter++;
+      currentStep = 0;
+      updateChapterNav();
+    }
+    renderStep();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress();
+}
+
+function updateChapterNav() {
+  const btns = document.querySelectorAll('.chapter-btn');
+  btns.forEach((b,i) => {
+    b.classList.remove('active');
+    if (i === currentChapter) b.classList.add('active');
+  });
+}
+
+function updateProgress() {
+  const total = chapters.reduce((s,c)=>s+c.steps.length, 0);
+  let done = 0;
+  for (let i=0; i<currentChapter; i++) done += chapters[i].steps.length;
+  done += currentStep;
+  const pct = Math.round((done/total)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressText').textContent = done+' / '+total+' 完了';
+}
+
+function renderStep() {
+  const content = document.getElementById('mainContent');
+  content.innerHTML = chapters[currentChapter].steps[currentStep]();
+  updateProgress();
+}
+
+// ==============================
+// INIT
+// ==============================
+renderStep();
+</script>
+</body>
+</html>
