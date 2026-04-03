@@ -1305,17 +1305,22 @@ const chapters = [
             <span class="menu-badge-soon">準備中</span>
           </button>
 
-          <!-- ── 独立機能 ── -->
-          <div class="menu-section-label" style="margin-top:6px">🤝 独立機能</div>
+          <!-- ── 最短解決モード ── -->
+          <div class="menu-section-label" style="margin-top:6px">🔍 最短解決モード</div>
 
-          <button class="menu-btn" onclick="window.open('https://sonoforge.streamlit.app/', '_blank')">
-            <span class="menu-icon">💬</span>
+          <button class="menu-btn" onclick="window.open('https://sonoforge.streamlit.app/', '_blank')" style="border:2px solid #00c8a0;background:linear-gradient(135deg,#f0fdf8,#e6faf4)">
+            <span class="menu-icon">🔬</span>
             <div class="menu-text">
-              <div class="menu-title">14. 助言機能のみモード</div>
-              <div class="menu-sub">エコー画像をアップロードして助言をもらう</div>
+              <div class="menu-title" style="color:#007a5e">14. すぐ解析したい人はこちら</div>
+              <div class="menu-sub">エコー画像をアップロード → AIが原因を特定・改善策を提示</div>
             </div>
-            <span class="menu-badge" style="background:linear-gradient(135deg,#00c8a0,#00a882);color:white;font-size:0.7rem;padding:3px 8px;border-radius:20px;font-weight:700;white-space:nowrap">使用可能</span>
+            <span class="menu-badge" style="background:linear-gradient(135deg,#00c8a0,#00a882);color:white;font-size:0.7rem;padding:3px 8px;border-radius:20px;font-weight:700;white-space:nowrap">今すぐ使える</span>
           </button>
+          <div style="background:linear-gradient(135deg,#e8faf5,#d4f1e8);border:1.5px solid #00c8a0;border-radius:12px;padding:12px 16px;font-size:0.82rem;color:#005a45;line-height:1.7">
+            <strong style="display:block;margin-bottom:4px">💡 こんなときに役立ちます</strong>
+            うまく描出できない・プローブをどう動かせば良いか助言がほしい<br>
+            <span style="opacity:0.8;font-size:0.78rem">※ Sonoforgeが提供する画像解析ツールです。</span>
+          </div>
 
         </div>
       `,
