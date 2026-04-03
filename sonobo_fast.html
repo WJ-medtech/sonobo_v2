@@ -1240,14 +1240,29 @@ const chapters = [
         <div class="completion-card" style="margin-top:20px">
           ${sonoboSVG(80)}
           <h2>🎉 FASTエコー修了！</h2>
-          <p>モリソン窩・脾周囲・心嚢・胸水の<strong>4つのビュー</strong>を学んだね！<br>実際にやってみよう。</p>
+          <p>モリソン窩・脾周囲・心嚢・胸水の<strong>4つのビュー</strong>を学んだね！</p>
         </div>
-        <div style="display:flex;gap:10px;margin-top:16px">
-          <button class="btn-next" style="flex:1;background:linear-gradient(135deg,#1a6fd4,#4a9eff)" onclick="window.open('https://sonoforge.streamlit.app/', '_blank')">
-            🎯 実践パート：画像をアップロードして助言をもらう
-          </button>
+
+        <!-- 次のアクション -->
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+
+          <!-- 実際にやってみよう -->
+          <div style="background:linear-gradient(135deg,#f0f6ff,#e8f0ff);border:2px solid var(--primary-light);border-radius:16px;padding:16px 18px">
+            <div style="font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;color:var(--primary-dark);font-size:0.95rem;margin-bottom:6px">✅ 実際にやってみよう</div>
+            <p style="font-size:0.85rem;color:var(--text-light);line-height:1.6">実際のFASTプロトコルを実施してみよう。心窩部→モリソン窩→脾周囲→骨盤の順に4ビューを素早く確認。</p>
+          </div>
+
+          <!-- うまくいかない原因を特定しよう（Sonoforge） -->
+          <div style="background:linear-gradient(135deg,#e8faf5,#d4f1e8);border:2px solid var(--accent);border-radius:16px;padding:16px 18px">
+            <div style="font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;color:#006b50;font-size:0.95rem;margin-bottom:6px">🔍 うまくいかない原因を特定しよう</div>
+            <p style="font-size:0.85rem;color:#005a45;line-height:1.6;margin-bottom:12px">モリソン窩がうまく描出できないと感じたら、エコー画像をアップロードして解析。原因と改善策をすぐに確認できます。</p>
+            <button class="btn-next" style="margin-top:0;background:linear-gradient(135deg,#00c8a0,#00a882);box-shadow:0 4px 16px rgba(0,200,160,0.35)" onclick="window.open('https://sonoforge.streamlit.app/', '_blank')">
+              🔬 Sonoforgeで今すぐ解析する
+            </button>
+          </div>
+
         </div>
-        <button style="width:100%;margin-top:10px;padding:12px;background:white;border:2px solid #c8d8f8;border-radius:14px;color:var(--text-light);font-size:0.85rem;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700" onclick="window.location.href='index.html'">コース選択に戻る 🏠</button>
+        <button style="width:100%;margin-top:12px;padding:12px;background:white;border:2px solid #c8d8f8;border-radius:14px;color:var(--text-light);font-size:0.85rem;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700" onclick="window.location.href='index.html'">コース選択に戻る 🏠</button>
       `,
     ]
   }
