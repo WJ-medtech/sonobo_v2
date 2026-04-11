@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>超音波の基本用語 — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --accent3: #f59e0b;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-back {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+
+  .header-title {
+    color: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .header-title h1 { font-size: 1.05rem; font-weight: 800; }
+  .header-title p { font-size: 0.72rem; opacity: 0.85; }
+
+  /* ===== MAIN ===== */
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  /* ===== INTRO BUBBLE ===== */
+  .chat-bubble-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 28px;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .sonobo-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .chat-bubble {
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    border-left: 4px solid var(--primary);
+  }
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.78rem;
+    margin-bottom: 4px;
+  }
+
+  /* ===== TERM MAP OVERVIEW ===== */
+  .term-map {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+    animation: fadeInUp 0.5s ease;
+  }
+  .term-map h3 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+  .term-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .term-chip {
+    background: #eef4ff;
+    color: var(--primary-dark);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .term-chip:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26,111,212,0.25);
+  }
+
+  /* ===== SECTION HEADERS ===== */
+  .section-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin: 36px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeInUp 0.4s ease;
+  }
+  .section-header .icon { font-size: 1.6rem; }
+  .section-header h2 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+  .section-header .tag {
+    background: rgba(255,255,255,0.22);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: auto;
+  }
+
+  /* ===== TERM CARD ===== */
+  .term-card {
+    background: white;
+    border-radius: 18px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: fadeInUp 0.4s ease;
+    scroll-margin-top: 80px;
+  }
+
+  .term-card-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid #f0f4ff;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .term-card-header:hover { background: #f8faff; }
+
+  .term-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    font-weight: 800;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .term-name {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text);
+    flex: 1;
+  }
+  .term-furigana {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 400;
+    display: block;
+    margin-top: 1px;
+  }
+
+  .term-card-toggle {
+    font-size: 1.1rem;
+    color: var(--primary-light);
+    transition: transform 0.25s;
+  }
+  .term-card.open .term-card-toggle { transform: rotate(180deg); }
+
+  .term-card-body {
+    display: none;
+    padding: 0 20px 20px;
+  }
+  .term-card.open .term-card-body { display: block; }
+
+  /* ===== CHAT DIALOGUES INSIDE CARD ===== */
+  .dialogue-wrap {
+    margin-top: 16px;
+  }
+
+  .msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .msg-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .msg-avatar.sonobo {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.6rem;
+  }
+  .msg-avatar.student {
+    background: linear-gradient(135deg, #e8f0ff, #c8d8f8);
+    color: var(--primary-dark);
+  }
+
+  .msg-bubble {
+    border-radius: 16px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    max-width: calc(100% - 50px);
+  }
+  .msg.sonobo .msg-bubble {
+    background: #eef4ff;
+    border-radius: 4px 16px 16px 16px;
+    border-left: 3px solid var(--primary);
+  }
+  .msg.student .msg-bubble {
+    background: #fff8f0;
+    border-radius: 16px 4px 16px 16px;
+    border-right: 3px solid var(--accent2);
+    margin-left: auto;
+  }
+  .msg.student { flex-direction: row-reverse; }
+  .msg.student .msg-bubble { margin-left: 0; }
+
+  .msg-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    margin-bottom: 3px;
+    display: block;
+  }
+  .sonobo .msg-label { color: var(--primary); }
+  .student .msg-label { color: var(--accent2); text-align: right; }
+
+  /* ===== HIGHLIGHT BOX ===== */
+  .highlight-box {
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    font-size: 0.86rem;
+    line-height: 1.75;
+  }
+  .highlight-box.blue {
+    background: linear-gradient(135deg, #e8f0ff, #d4e8ff);
+    border-left: 4px solid var(--primary);
+  }
+  .highlight-box.green {
+    background: linear-gradient(135deg, #e0f8f0, #c8f0e0);
+    border-left: 4px solid var(--accent);
+  }
+  .highlight-box.orange {
+    background: linear-gradient(135deg, #fff3e0, #ffe0c0);
+    border-left: 4px solid var(--accent2);
+  }
+  .highlight-box.yellow {
+    background: linear-gradient(135deg, #fffbea, #ffeeb5);
+    border-left: 4px solid var(--accent3);
+  }
+  .highlight-box .box-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* ===== FORMULA ===== */
+  .formula {
+    background: #1a2540;
+    color: #7dd3fc;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    text-align: center;
+    margin: 10px 0;
+    letter-spacing: 0.04em;
+  }
+  .formula .eq-comment {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-family: 'Noto Sans JP', sans-serif;
+    letter-spacing: 0;
+  }
+
+  /* ===== TABLE ===== */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 12px 0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .data-table th {
+    background: var(--primary);
+    color: white;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+  .data-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #e8eef8;
+    line-height: 1.5;
+  }
+  .data-table tr:nth-child(even) td { background: #f4f8ff; }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  /* ===== CLINICAL POINT ===== */
+  .clinical-point {
+    background: linear-gradient(135deg, #f0fff4, #dcfce7);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    border: 1.5px solid #86efac;
+  }
+  .clinical-point .cp-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: #15803d;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .clinical-point ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .clinical-point li {
+    font-size: 0.84rem;
+    line-height: 1.65;
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+    color: #166534;
+  }
+  .clinical-point li::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+    font-size: 0.6rem;
+    top: 6px;
+  }
+
+  /* ===== QUIZ ===== */
+  .quiz-section {
+    background: linear-gradient(135deg, #fdf4ff, #f3e8ff);
+    border-radius: 16px;
+    padding: 18px;
+    margin: 20px 0;
+    border: 1.5px solid #d8b4fe;
+  }
+  .quiz-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #7c3aed;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .quiz-item {
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.1);
+  }
+  .quiz-item:last-child { margin-bottom: 0; }
+  .quiz-q {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .quiz-q .q-num {
+    display: inline-block;
+    background: #7c3aed;
+    color: white;
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 0.72rem;
+    margin-right: 6px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .quiz-opt {
+    border: 2px solid #e8d5ff;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.83rem;
+    cursor: pointer;
+    transition: all 0.18s;
+    background: white;
+    text-align: left;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .quiz-opt:hover {
+    border-color: #7c3aed;
+    background: #faf5ff;
+  }
+  .quiz-opt.correct {
+    background: #f0fdf4;
+    border-color: #22c55e;
+    color: #15803d;
+  }
+  .quiz-opt.wrong {
+    background: #fff1f2;
+    border-color: #f43f5e;
+    color: #be123c;
+  }
+  .quiz-opt:disabled { cursor: default; }
+
+  .quiz-explanation {
+    display: none;
+    background: #f5f0ff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #4c1d95;
+    margin-top: 8px;
+    border-left: 3px solid #7c3aed;
+  }
+  .quiz-explanation.show { display: block; }
+
+  /* ===== DIVIDER ===== */
+  .term-divider {
+    text-align: center;
+    margin: 8px 0 4px;
+    color: var(--text-light);
+    font-size: 0.75rem;
+  }
+
+  /* ===== NAVIGATION ===== */
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    flex: 1;
+    min-width: 120px;
+    background: white;
+    border: 2px solid #d4e0f8;
+    border-radius: 14px;
+    padding: 12px 16px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--primary);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.18s;
+  }
+  .nav-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-wrap {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .progress-label {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #e8eef8;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 6px;
+    transition: width 0.4s ease;
+  }
+  .progress-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-light);
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  strong { color: var(--primary-dark); }
+  em { color: var(--accent2); font-style: normal; font-weight: 700; }
+
+  .tag-pill {
+    display: inline-block;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <a class="header-back" href="sonobo_lecture.html" title="コースに戻る">‹</a>
+  <div class="header-title">
+    <h1>📖 1. 超音波の基本用語</h1>
+    <p>波長・振幅・周波数・減衰・屈折・吸収・散乱・透過・解像度・反射・エイリアシング</p>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+  <!-- ソノボ君イントロ -->
+  <div class="chat-bubble-wrap">
+    <div class="sonobo-avatar" style="width:56px;height:56px;background:linear-gradient(135deg,#1a6fd4,#4a9eff);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0;">波</div>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      ようこそ！まずは <strong>超音波の基礎物理用語</strong> を一緒に学ぼう✨<br>
+      「なんで深い臓器は見えにくいの？」「ドプラで折り返しが出るのはなぜ？」——その答えがここにある！<br>
+      各用語をタップして開いてみてね。最後には <strong>確認クイズ</strong> もあるよ🎯
+    </div>
+  </div>
+
+  <!-- 用語チップ一覧 -->
+  <div class="term-map">
+    <h3>📋 このページで学ぶ11の用語</h3>
+    <div class="term-chips">
+      <a href="#wavelength" class="term-chip">📏 波長</a>
+      <a href="#amplitude" class="term-chip">📊 振幅</a>
+      <a href="#frequency" class="term-chip">🔢 周波数</a>
+      <a href="#attenuation" class="term-chip">📉 減衰</a>
+      <a href="#refraction" class="term-chip">🔀 屈折</a>
+      <a href="#absorption" class="term-chip">🌡️ 吸収</a>
+      <a href="#scattering" class="term-chip">💠 散乱</a>
+      <a href="#transmission" class="term-chip">➡️ 透過</a>
+      <a href="#resolution" class="term-chip">🔍 解像度</a>
+      <a href="#reflection" class="term-chip">🪞 反射</a>
+      <a href="#aliasing" class="term-chip">🔄 エイリアシング</a>
+    </div>
+  </div>
+
+  <!-- 進捗バー -->
+  <div class="progress-wrap">
+    <div class="progress-label">学習進捗</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <div class="progress-stats">
+      <span id="progressText">0 / 11 用語を確認</span>
+      <span id="progressPct">0%</span>
+    </div>
+  </div>
+
+  <!-- ========== 用語カード ========== -->
+
+  <!-- 1. 波長 -->
+  <div class="section-header">
+    <span class="icon">📏</span>
+    <h2>波長 (Wavelength)</h2>
+    <span class="tag">λ</span>
+  </div>
+  <div class="term-card" id="wavelength">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">1</div>
+      <div class="term-name">
+        波長 <span class="term-furigana">はちょう / Wavelength</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <!-- student question -->
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            「波長」って、なんですか？
+          </div>
+        </div>
+        <!-- sonobo answer -->
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            波長は、超音波の <strong>1周期が空間に占める長さ</strong> のことだよ！<br>
+            記号は <strong>λ（ラムダ）</strong> で表されるよ。
+          </div>
+        </div>
+        <div class="highlight-box blue">
+          <div class="box-title">📐 基本の式</div>
+          <div class="formula">
+            c = f × λ<br>
+            <span style="color:#e2e8f0">∴ λ = c / f</span>
+            <div class="eq-comment">c：音速（軟部組織 ≈ 1540 m/s）　f：周波数　λ：波長</div>
+          </div>
+          媒質（組織）の中での音速がほぼ一定なので、<strong>周波数が上がれば波長は短くなる</strong>んだ！
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            波長が短いと、何がうれしいの？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            <strong>細かい構造を見分けられる（分解能が上がる）</strong> んだよ！<br>
+            軸方向の分解能は「Spatial Pulse Length（SPL）÷ 2」で決まるけど、SPLは「波長 × パルス内のサイクル数」だから、波長が短いほど空間パルス長も短くなって、分解能アップ！
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr><th>周波数</th><th>波長（c=1540 m/s）</th><th>主な用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>2.0 MHz</td><td>0.77 mm</td><td>腹部深部・心臓</td></tr>
+            <tr><td>3.5 MHz</td><td>0.44 mm</td><td>腹部汎用・FAST</td></tr>
+            <tr><td>5.0 MHz</td><td>0.31 mm</td><td>腹部中等度深さ</td></tr>
+            <tr><td>10 MHz</td><td>0.15 mm</td><td>体表・血管・甲状腺・MSK</td></tr>
+          </tbody>
+        </table>
+
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>プローブ選択の最上流因子。「細かく見たい＝高周波」だが深部は見えにくくなる</li>
+            <li>脂肪肝など散乱が強い臓器では、低周波で到達距離を確保する戦略が実用的</li>
+            <li>高周波に上げると深部が急に暗くなる → 「物理的に届いていない」状態に注意</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 振幅 -->
+  <div class="section-header">
+    <span class="icon">📊</span>
+    <h2>振幅 (Amplitude)</h2>
+    <span class="tag">A</span>
+  </div>
+  <div class="term-card" id="amplitude">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">2</div>
+      <div class="term-name">
+        振幅 <span class="term-furigana">しんぷく / Amplitude</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            振幅って、波の「大きさ」？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            そう！振幅は波の「最大変位」＝音圧の強さを表すよ。<br>
+            超音波では、<strong>反射エコーの振幅（強さ）がBモードの輝度に反映</strong>される。つまり<em>輝度 = エコーの強さ</em> ということ！
+          </div>
+        </div>
+        <div class="highlight-box blue">
+          <div class="box-title">💡 AモードとBモードの違い</div>
+          <strong>Aモード（Amplitude mode）</strong>：深さに対するエコーの振幅を<em>波形</em>で表示<br>
+          <strong>Bモード（Brightness mode）</strong>：その振幅を<em>輝度</em>に変換して2次元画像化
+          <br><br>
+          臨床装置は対数圧縮・ダイナミックレンジで階調変換しているから、「同じ反射でも表示条件で見え方が変わる」点に注意！
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            ゲインを上げると画像が明るくなるのも振幅と関係してる？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            鋭いね！ゲインは「<strong>受信後の増幅</strong>」だから、実際の反射（物理現象）は変わらないよ。<br>
+            だからゲインを上げすぎると、本来なら暗いはずの場所まで明るく見えてしまう→<em>偽の内部エコー</em> が出る危険があるんだ！
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>ゲイン過剰 → 「本来無エコーの液体が濁って見える」に注意</li>
+            <li>TGC/STCの過補正は「深部減衰」という病的情報を消してしまうことも</li>
+            <li>針・カテの描出：角度依存が強い → 振幅が落ちたら「角度を変えてエコー振幅を稼ぐ」操作が基本</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 周波数 -->
+  <div class="section-header">
+    <span class="icon">🔢</span>
+    <h2>周波数 (Frequency)</h2>
+    <span class="tag">f / MHz</span>
+  </div>
+  <div class="term-card" id="frequency">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">3</div>
+      <div class="term-name">
+        周波数 <span class="term-furigana">しゅうはすう / Frequency</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            周波数は <strong>1秒あたりの振動回数（Hz）</strong> のことだよ。<br>
+            医療用超音波は一般に <strong>1〜20 MHz</strong> が使われるよ。<br>
+            周波数が変わると何が起きるか、整理してみよう！
+          </div>
+        </div>
+        <div class="highlight-box blue">
+          <div class="box-title">⚖️ 周波数のトレードオフ</div>
+          <strong>周波数↑</strong>（高周波）<br>
+          　→ 波長↓ → <em>空間分解能↑</em>（細かく見える）<br>
+          　→ <em>減衰↑</em>（深部に届きにくい）<br><br>
+          <strong>周波数↓</strong>（低周波）<br>
+          　→ 波長↑ → 分解能↓（粗くなる）<br>
+          　→ <em>透過性↑</em>（深部まで届く）
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            深部が見えない時、まずゲインを上げてしまいがち…
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            それが <em>よくある落とし穴</em> ！<br>
+            深部が見えない時は <strong>まず周波数を下げること</strong> を考えて。ゲインを上げる前に、物理的な到達距離を確保するのが先決だよ。
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>"深さの問題"はまず周波数で解く：深部が暗いとき、frequency を下げる選択肢を必ず検討</li>
+            <li>体表（血管・胸膜・MSK）では高周波の価値が最大化：微細構造が分離しやすい</li>
+            <li>ドプラの折り返し軽減にも：送信周波数↓ でドプラ周波数シフト↓、エイリアシング軽減策の一つ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 減衰 -->
+  <div class="section-header">
+    <span class="icon">📉</span>
+    <h2>減衰 (Attenuation)</h2>
+    <span class="tag">dB/cm/MHz</span>
+  </div>
+  <div class="term-card" id="attenuation">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">4</div>
+      <div class="term-name">
+        減衰 <span class="term-furigana">げんすい / Attenuation</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            超音波が媒質を進むにつれてエネルギーが失われ、<strong>深部ほどエコーが弱くなる現象</strong>が「減衰」だよ。<br>
+            主な原因は <strong>吸収</strong>・<strong>散乱</strong>・反射などだ。
+          </div>
+        </div>
+        <div class="highlight-box orange">
+          <div class="box-title">⚠️ 減衰の特性</div>
+          高周波ほど減衰が大きい → 深部観察では低周波を使う<br>
+          往復伝搬を仮定する（距離推定式 D = c×t/2）ため、<em>減衰も往復で累積しやすい</em>
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            TGCって減衰の補正のこと？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            そう！TGC（Time Gain Compensation）= STC（Sensitivity Time Compensation）は深部を人工的に明るくする機能だよ。<br>
+            でも <em>過補正には注意</em>！脂肪肝などで「深部が落ちる」こと自体が重要な所見なのに、TGCで均一化してしまうと病的情報を見落とすことになる。
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>「深部が暗い＝病変」とは限らない：まず周波数・深度・フォーカス・TGCの設定を確認</li>
+            <li>強い減衰（背側の音響陰影）＝結石・骨・ガスの示唆、後方増強＝液体の示唆</li>
+            <li>ドプラ系モードは組織加温リスクが上がる → ALARA原則で出力・照射時間を最適化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 屈折 -->
+  <div class="section-header">
+    <span class="icon">🔀</span>
+    <h2>屈折 (Refraction)</h2>
+    <span class="tag">スネルの法則</span>
+  </div>
+  <div class="term-card" id="refraction">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">5</div>
+      <div class="term-name">
+        屈折 <span class="term-furigana">くっせつ / Refraction</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            媒質（組織）間で <strong>音速が違う</strong> とき、境界を斜めに通過する超音波の進行方向が「曲がる」現象が屈折だよ。<br>
+            入射角と屈折角の関係は <strong>スネルの法則</strong> で表されるんだ。
+          </div>
+        </div>
+        <div class="formula">
+          sin θ₁ / c₁ = sin θ₂ / c₂
+          <div class="eq-comment">θ₁: 入射角、c₁: 第1媒質の音速、θ₂: 屈折角、c₂: 第2媒質の音速</div>
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            屈折が起きると画像にどう影響するの？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            ビーム経路がずれることで：<br>
+            ① 構造物の <em>横方向の位置ずれ</em>（lateral displacement）<br>
+            ② <em>エッジ付近の陰影</em>（edge shadow）<br>
+            …といったアーチファクトが生じることがあるよ。これらは臨床解釈に影響するから要注意！
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>「境界を斜めに跨ぐ」状況を疑う：腹壁-臓器境界・肋骨弓付近で不自然な陰影が出たら屈折アーチファクトを疑う</li>
+            <li>入射角の制御は多くの問題を同時に減らす：垂直入射に近づけることで反射も屈折も改善しやすい</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 吸収 -->
+  <div class="section-header">
+    <span class="icon">🌡️</span>
+    <h2>吸収 (Absorption)</h2>
+    <span class="tag">TI / ALARA</span>
+  </div>
+  <div class="term-card" id="absorption">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">6</div>
+      <div class="term-name">
+        吸収 <span class="term-furigana">きゅうしゅう / Absorption</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            超音波の音エネルギーが主に<strong>熱に変換</strong>されてエコー強度が低下する現象が「吸収」。<br>
+            減衰の主要な機序の一つで、特に <em>ドプラ系モード</em> を使うときに重要！
+          </div>
+        </div>
+        <div class="highlight-box orange">
+          <div class="box-title">🔥 安全指標を知ろう</div>
+          <strong>TI（Thermal Index）</strong>：組織加温リスクの指標<br>
+          <strong>MI（Mechanical Index）</strong>：非熱的影響（キャビテーションなど）の指標<br><br>
+          MIの定義：derated ピーク陰圧（MPa）÷ √中心周波数（MHz）<br>
+          検者は <em>ALARA原則</em>（As Low As Reasonably Achievable）でTI/MIをモニタしながら最小限の出力・照射時間で検査する！
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            どんな時に特に気をつけるの？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            スペクトラルPWドプラやカラードプラは出力・時間平均強度が上がりやすい！だから TI 上昇に特に注意が必要だよ。<br>
+            「見えないから出力を上げる」より先に、<em>周波数・深度・フォーカス・音響窓</em>を見直すことが大切なんだ。
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>ドプラ使用時は「吸収＝加温」を意識してTI/MIを画面で確認</li>
+            <li>出力を上げる前に設定（プローブ周波数・深度・フォーカス）を最適化</li>
+            <li>出力を上げすぎると安全面だけでなくノイズも増加して画質が落ちることも</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 散乱 -->
+  <div class="section-header">
+    <span class="icon">💠</span>
+    <h2>散乱 (Scattering)</h2>
+    <span class="tag">スペックル</span>
+  </div>
+  <div class="term-card" id="scattering">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">7</div>
+      <div class="term-name">
+        散乱 <span class="term-furigana">さんらん / Scattering</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            <strong>波長以下の小さな反射体が多数ある</strong>条件で、超音波が多方向へ広がって反射波が拡散する現象が「散乱」だよ。<br>
+            Bモード画像に見えるあの「斑点状ノイズ」はこれが原因！
+          </div>
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            脂肪肝の画像が「粒粒」に見えるのは散乱のせい？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            そう！脂肪肝では多数の微小反射体が存在 → 散乱増加 → <em>びまん性高エコー + 深部が落ちる</em> というパターンが出るよ。<br>
+            ただし「スペックル（斑点ノイズ）を所見と誤認」しないように。ゲインや周波数・ハーモニクス設定で見え方が変わるから、まず設定を標準化してから判断してね。
+          </div>
+        </div>
+        <div class="highlight-box yellow">
+          <div class="box-title">💡 スペックルに注意</div>
+          散乱由来のテクスチャ（スペックル）は設定変化で大きく変化する。<br>
+          「見え方が変わった ≠ 病態が変わった」！
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>"びまん性高エコー＋深部が落ちる"＝散乱増加+減衰の累積パターン → 脂肪肝などの鑑別</li>
+            <li>組織ハーモニクスや空間コンパウンドでスペックルの見え方が変わることがある</li>
+            <li>散乱は画像生成にも利用されているが、過度の散乱は画質を低下させる</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 透過 -->
+  <div class="section-header">
+    <span class="icon">➡️</span>
+    <h2>透過 (Transmission)</h2>
+    <span class="tag">音響インピーダンス</span>
+  </div>
+  <div class="term-card" id="transmission">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">8</div>
+      <div class="term-name">
+        透過 <span class="term-furigana">とうか / Transmission</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            境界を越えて超音波が媒質内を通り、<strong>深部へ進むこと</strong>が「透過」だよ。反射と対になる概念で、「高周波＝分解能↑だが透過性↓」というのが最大のポイント！
+          </div>
+        </div>
+        <div class="highlight-box blue">
+          <div class="box-title">🌊 音響インピーダンスと透過・反射</div>
+          音響インピーダンス <strong>Z = ρ（密度）× c（音速）</strong><br><br>
+          境界では「一部は反射し、一部は透過する」。<br>
+          Z差が大きいほど反射が強く、透過が少なくなる。<br><br>
+          法線入射での<strong>強度透過係数</strong>：<span style="font-family:monospace">4Z₁Z₂ / (Z₁+Z₂)²</span>
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            液体（膀胱・胆嚢）の奥が明るく見えるのは透過のせい？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            その通り！これが「<strong>後方エコー増強</strong>」だよ。液体はほとんど超音波を吸収しないから、その奥のエコーが強く見える。重要な正常所見だ！<br>
+            逆にガスや骨は強反射+高減衰で深部情報を遮断する → 音響窓（肝臓・膀胱など）を上手く使うのがPOCUSのコツ！
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>液体は透過が良く後方増強が出やすい：膀胱・胆嚢・胸水/腹水で"奥が明るい"は正常所見</li>
+            <li>ガス/骨は実質的に深部情報を遮断 → 肋間・肝臓を音響窓にして切り替えるのがPOCUSのポイント</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 解像度 -->
+  <div class="section-header">
+    <span class="icon">🔍</span>
+    <h2>解像度 (Resolution)</h2>
+    <span class="tag">軸方向・側方</span>
+  </div>
+  <div class="term-card" id="resolution">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">9</div>
+      <div class="term-name">
+        解像度 <span class="term-furigana">かいぞうど / Resolution</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            解像度は「<strong>近接した2点を別々と識別できる能力</strong>」。超音波では主に2種類あるよ！
+          </div>
+        </div>
+        <div class="highlight-box blue">
+          <div class="box-title">🔎 解像度の種類</div>
+          <strong>① 軸方向（Axial）分解能</strong>：ビーム軸に沿う方向<br>
+          　 ≈ SPL / 2 … 短パルス・高周波で改善<br><br>
+          <strong>② 側方（Lateral）分解能</strong>：ビームに垂直な方向<br>
+          　 焦点近傍で最も良好 → フォーカスをターゲット深さに合わせることが大事！
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            ゲインを上げれば解像度も上がる？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            <em>それは間違い！</em> ゲインやコントラストを上げてもコントラスト解像度は変わっても、<strong>物理的な空間分解能限界は超えられない</strong>よ。<br>
+            「ゲインで作った輪郭」を信じないで！
+          </div>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>軸方向分解能を上げたい → 周波数↑（可能な範囲で）、深度↓</li>
+            <li>側方分解能を上げたい → フォーカスをターゲット深さに合わせる</li>
+            <li>救急POCUSでは「最高画質」より「迅速で再現性ある最低限の画質」が重視される</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 反射 -->
+  <div class="section-header">
+    <span class="icon">🪞</span>
+    <h2>反射 (Reflection)</h2>
+    <span class="tag">Z差・入射角</span>
+  </div>
+  <div class="term-card" id="reflection">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">10</div>
+      <div class="term-name">
+        反射 <span class="term-furigana">はんしゃ / Reflection</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            超音波画像は<strong>音響インピーダンス差で生じる反射</strong>を利用しているよ！<br>
+            Bモード輝度は反射の大きさ（振幅/強度）を反映している。
+          </div>
+        </div>
+        <div class="formula">
+          反射係数 = [(Z₂ - Z₁) / (Z₂ + Z₁)]²
+          <div class="eq-comment">Z差が大きいほど反射が強い（Z：音響インピーダンス = ρ × c）</div>
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            針が見えなくなる時があるんだけど…
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            鏡面反射に近い構造（胸膜ライン・血管壁・針・腱）は<em>入射角がずれると反射がプローブに戻らず暗くなる</em>よ！<br>
+            プローブの傾き調整 ＝「反射エコーを取り戻す」操作だから、まず角度を変えてみよう。
+          </div>
+        </div>
+        <div class="highlight-box orange">
+          <div class="box-title">⚠️ 「反射が強い ≠ 硬い/悪い」</div>
+          反射は境界条件の物理（Z差と角度）で決まり、表示条件（ゲイン等）でも変わる。<br>
+          反射を病理に直結させる前に条件を揃えよう。
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>垂直入射が最強：胸膜ライン・血管壁・針などは垂直に近づけると明るく見える</li>
+            <li>空気は強い反射 → Aライン・気胸評価の基盤（ただしプロトコルに従う）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. エイリアシング -->
+  <div class="section-header">
+    <span class="icon">🔄</span>
+    <h2>エイリアシング (Aliasing)</h2>
+    <span class="tag">ナイキスト限界</span>
+  </div>
+  <div class="term-card" id="aliasing">
+    <div class="term-card-header" onclick="toggleCard(this)">
+      <div class="term-number">11</div>
+      <div class="term-name">
+        エイリアシング <span class="term-furigana">折り返し現象 / Aliasing</span>
+      </div>
+      <span class="term-card-toggle">▼</span>
+    </div>
+    <div class="term-card-body">
+      <div class="dialogue-wrap">
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            パルスドプラで <strong>ナイキスト限界（PRF/2）を超えた速度</strong> が<em>反対側に折り返して</em>表示される現象が「エイリアシング」だよ！<br>
+            PRFは「Pulse Repetition Frequency（パルス繰り返し周波数）」で、サンプリング率のこと。
+          </div>
+        </div>
+        <div class="formula">
+          ナイキスト限界 = PRF / 2
+          <div class="eq-comment">これを超える速度はエイリアシング（折り返し）として表示される</div>
+        </div>
+        <div class="formula">
+          ドプラ式：Δf = (2 × f₀ × v × cosφ) / c
+          <div class="eq-comment">f₀：送信周波数　v：血流速度　φ：ドプラ角　c：音速</div>
+        </div>
+        <div class="msg student">
+          <div class="msg-avatar student">🙋</div>
+          <div class="msg-bubble">
+            <span class="msg-label">研修医</span>
+            エイリアシングが出たら、どう対処するの？
+          </div>
+        </div>
+        <div class="msg sonobo">
+          <div class="msg-avatar sonobo">波</div>
+          <div class="msg-bubble">
+            <span class="msg-label">ソノボ君</span>
+            まず <em>「設定の問題」</em> かどうか確認することが大切！折り返しを見たらすぐ狭窄と断定しないでね。<br><br>
+            対処の順番はこうだよ👇
+          </div>
+        </div>
+        <div class="highlight-box green">
+          <div class="box-title">✅ エイリアシング対処手順（実務順）</div>
+          ① <strong>PRF（スケール）を上げる</strong>（可能なら深度を浅くしてPRF上限を上げる）<br>
+          ② <strong>ベースラインをシフト</strong>して表示レンジをずらす<br>
+          ③ <strong>低周波プローブへ</strong>（f₀↓でΔf↓）<br>
+          ④ 可能なら <strong>CW/High-PRF等の別モード</strong>検討（レンジ分解能との交換条件を理解して使う）
+        </div>
+        <div class="highlight-box orange">
+          <div class="box-title">⚠️ CWドプラのトレードオフ</div>
+          <strong>連続波（CW）ドプラ</strong>：高速度を正しくサンプリングできる<br>
+          BUT：<em>深さ（どこで生じた流れか）の情報が得られない</em>
+        </div>
+        <div class="clinical-point">
+          <div class="cp-title">🏥 POCUSでのポイント</div>
+          <ul>
+            <li>エイリアシングは "設定由来の偽所見" の可能性 → 病態断定の前に設定を調整・再評価</li>
+            <li>ドプラ角 &gt; 60° では速度推定誤差が増える → 角度依存性も同時に管理</li>
+            <li>ドプラ系モードは出力が上がる → TI上昇に注意、ALARA原則を守る</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========== まとめクイズ ========== -->
+  <div class="section-header" style="background: linear-gradient(135deg, #6d28d9, #7c3aed);">
+    <span class="icon">🎯</span>
+    <h2>確認クイズ</h2>
+    <span class="tag">全12問</span>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <div class="sonobo-avatar" style="width:56px;height:56px;background:linear-gradient(135deg,#7c3aed,#a78bfa);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0;">Q</div>
+    <div class="chat-bubble" style="border-color:#7c3aed;">
+      <div class="speaker" style="color:#7c3aed;">🤖 ソノボ君</div>
+      さあ、ここまで学んだことを確認しよう！各問題の選択肢をタップして答えてみてね。解説もちゃんと出るよ✨
+    </div>
+  </div>
+
+  <div class="quiz-section">
+    <div class="quiz-title">🎯 基本用語クイズ（全12問）</div>
+
+    <!-- Q1 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q1</span>軟部組織での音速として最も正しいのはどれ？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q1')">340 m/s</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q1')">900 m/s</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q1')">1540 m/s</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q1')">3000 m/s</button>
+      </div>
+      <div class="quiz-explanation" id="q1">
+        正解は <strong>1540 m/s</strong>！<br>
+        軟部組織での音速はほぼ一定で約1540 m/s。この値がBモード画像の距離計算（D = c×t/2）の基礎になっている。空気中の音速（約340 m/s）と混同しないように！
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q2</span>5 MHzのプローブを使用した場合、軟部組織中での波長はどれか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q2')">0.77 mm</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q2')">0.31 mm</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q2')">0.15 mm</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q2')">1.54 mm</button>
+      </div>
+      <div class="quiz-explanation" id="q2">
+        正解は <strong>0.31 mm</strong>！<br>
+        λ = c / f = 1540 / 5,000,000 ≈ 0.000308 m ≈ 0.31 mm<br>
+        ちなみに2MHzなら0.77 mm、10MHzなら0.15 mm。周波数が上がるほど波長は短くなる。
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q3</span>高周波プローブに切り替えると何が起きるか。正しい組み合わせはどれ？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q3')">分解能↓ ＋ 透過性↑</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q3')">分解能↑ ＋ 透過性↓</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q3')">分解能↑ ＋ 透過性↑</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q3')">分解能↓ ＋ 透過性↓</button>
+      </div>
+      <div class="quiz-explanation" id="q3">
+        正解は <strong>分解能↑ ＋ 透過性↓</strong>！<br>
+        高周波＝波長短い＝細かく見える（分解能↑）、かつ減衰大きい＝深部に届きにくい（透過性↓）。これが「表層は高周波、深部は低周波」という使い分けの根拠。
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q4</span>Bモードの輝度（明るさ）は何を反映しているか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q4')">超音波の周波数</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q4')">組織の硬さ</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q4')">反射エコーの振幅（強度）</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q4')">ゲインの設定値</button>
+      </div>
+      <div class="quiz-explanation" id="q4">
+        正解は <strong>反射エコーの振幅（強度）</strong>！<br>
+        BはBrightnessの略。AモードのAmplitude（振幅）情報を輝度に変換して2次元表示したものがBモード。ゲインは受信後の増幅であり、物理的な反射の強さ自体は変えられない。
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q5</span>TGC（Time Gain Compensation）を過度に上げるとどうなる可能性があるか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q5')">周波数が上がりすぎる</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q5')">深部減衰という病的情報が見えにくくなる</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q5')">PRFが低下してエイリアシングが出やすくなる</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q5')">屈折アーチファクトが増える</button>
+      </div>
+      <div class="quiz-explanation" id="q5">
+        正解は <strong>深部減衰という病的情報が見えにくくなる</strong>！<br>
+        TGCで均一化しすぎると、脂肪肝などで本来「深部が落ちる」という重要な所見を消してしまう。TGCは便利だが使いすぎも問題。
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q6</span>スネルの法則に関係する現象はどれか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q6')">エイリアシング</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q6')">後方エコー増強</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q6')">屈折</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q6')">スペックル</button>
+      </div>
+      <div class="quiz-explanation" id="q6">
+        正解は <strong>屈折</strong>！<br>
+        スネルの法則（sin θ₁/c₁ = sin θ₂/c₂）は屈折における入射角と屈折角の関係を示す。音速が異なる組織の境界を斜めに通過すると、ビームが曲がって構造物の位置ずれやエッジ陰影のアーチファクトが生じる。
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q7</span>超音波の安全性指標である「TI」は何を示すか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q7')">プローブの送信周波数</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q7')">組織加温リスク</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q7')">キャビテーションなど非熱的影響リスク（それはMI）</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q7')">PRFの設定値</button>
+      </div>
+      <div class="quiz-explanation" id="q7">
+        正解は <strong>組織加温リスク</strong>！<br>
+        TI = Thermal Index（熱的指標）。MIは Mechanical Index（機械的・非熱的影響の指標）。スペクトラルドプラなどはTIが上がりやすいのでALARA原則で管理する。
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q8</span>「びまん性高エコーで深部が減衰する」パターンが示唆する疾患として最も代表的なものは？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q8')">胆嚢炎</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q8')">胸水</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q8')">脂肪肝</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q8')">腹水</button>
+      </div>
+      <div class="quiz-explanation" id="q8">
+        正解は <strong>脂肪肝</strong>！<br>
+        脂肪肝では多数の微小脂肪滴（波長以下の反射体）が散乱を増加させ、浅層から高エコーになる。さらに散乱＋吸収で深部が落ちやすい。「高エコー＋深部減衰」というパターンが典型的。
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q9</span>液体（膀胱・胆嚢など）の後方が明るく見える現象を何というか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q9')">音響陰影</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q9')">後方エコー増強</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q9')">エイリアシング</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q9')">スペックル</button>
+      </div>
+      <div class="quiz-explanation" id="q9">
+        正解は <strong>後方エコー増強</strong>！<br>
+        液体は吸収・散乱が少ないため透過性が高く、その後方のエコーが強く（明るく）見える。これは「アーチファクト」だが、液体の存在診断に積極的に利用できる有用な所見。
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q10</span>パルスドプラにおいてエイリアシング（折り返し）が生じる条件はどれか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q10')">実際の血流速度がPRFを超えたとき</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q10')">ドプラ周波数シフトがナイキスト限界（PRF/2）を超えたとき</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q10')">TGCを上げすぎたとき</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q10')">プローブ周波数が低いとき</button>
+      </div>
+      <div class="quiz-explanation" id="q10">
+        正解は <strong>ドプラ周波数シフトがナイキスト限界（PRF/2）を超えたとき</strong>！<br>
+        重要な区別：実際の血流速度がPRFを超えるのではなく、「ドプラ周波数シフト（Δf）がPRF/2を超えた」ときにエイリアシングが生じる。Δfは速度だけでなくプローブ周波数・角度にも依存する。
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q11</span>エイリアシングへの対処として正しいものを全て選べ。（正解は複数の原則として）<br>最初に行うべき操作として適切なのはどれか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, true, 'q11')">PRF（速度スケール）を上げる</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q11')">TGCを下げる</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q11')">プローブ周波数を上げる</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q11')">フォーカスを深くする</button>
+      </div>
+      <div class="quiz-explanation" id="q11">
+        正解は <strong>PRF（速度スケール）を上げる</strong>！<br>
+        対処の優先順：①PRF/スケールを上げる → ②ベースラインシフト → ③低周波プローブへ → ④CW等別モード検討。TGCやフォーカスはエイリアシングとは無関係。プローブ周波数を上げるとΔfが大きくなり逆効果！
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="q-num">Q12</span>次のうち「音響インピーダンス（Z）」の正しい定義式はどれか？</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this, false, 'q12')">Z = f × λ</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q12')">Z = c / f</button>
+        <button class="quiz-opt" onclick="answer(this, true, 'q12')">Z = ρ × c</button>
+        <button class="quiz-opt" onclick="answer(this, false, 'q12')">Z = A / f</button>
+      </div>
+      <div class="quiz-explanation" id="q12">
+        正解は <strong>Z = ρ × c</strong>！<br>
+        音響インピーダンスZ（単位：Rayl）は「媒質の密度ρ × その媒質での音速c」で定義される。Z差が大きいほど境界での反射が強くなり、透過が少なくなる。ガスや骨とその他組織の間のZ差が大きいため強反射が起きる。
+      </div>
+    </div>
+
+  </div><!-- /quiz-section -->
+
+
+  <!-- ===== まとめチャート ===== -->
+  <div class="section-header" style="background: linear-gradient(135deg, #065f46, #059669);">
+    <span class="icon">📋</span>
+    <h2>設定→操作マップ</h2>
+    <span class="tag">まとめ</span>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <div class="sonobo-avatar" style="width:56px;height:56px;background:linear-gradient(135deg,#059669,#34d399);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0;">📋</div>
+    <div class="chat-bubble" style="border-color:#059669;">
+      <div class="speaker" style="color:#059669;">🤖 ソノボ君</div>
+      最後に、POCUS現場での「目的 → まず触る設定 → 関連用語」の整理をしておこう！これ、覚えておくとめちゃくちゃ役に立つよ✨
+    </div>
+  </div>
+
+  <div class="term-card" style="overflow:auto;">
+    <div class="term-card-header" style="cursor:default;">
+      <div class="term-number" style="background:linear-gradient(135deg,#059669,#34d399);">📋</div>
+      <div class="term-name">POCUSの意思決定マップ</div>
+    </div>
+    <div class="term-card-body" style="display:block;">
+      <table class="data-table" style="font-size:0.78rem;">
+        <thead>
+          <tr><th>目的</th><th>まず触る設定</th><th>関連用語</th><th>落とし穴</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>深部を見たい</td>
+            <td>周波数↓<br>深度・音響窓調整</td>
+            <td>周波数、減衰、透過</td>
+            <td>ゲインだけ上げてノイズを増やす</td>
+          </tr>
+          <tr>
+            <td>表層の細部を見たい</td>
+            <td>周波数↑<br>フォーカス合わせ</td>
+            <td>波長、解像度</td>
+            <td>深部情報が消えるのを病変と誤認</td>
+          </tr>
+          <tr>
+            <td>境界・針を見たい</td>
+            <td>入射角調整（垂直化）<br>フォーカス</td>
+            <td>反射、振幅</td>
+            <td>角度依存性を「消えた」と誤認</td>
+          </tr>
+          <tr>
+            <td>血流速度を測りたい</td>
+            <td>角度&lt;60°<br>PRF/ベースライン、深度</td>
+            <td>エイリアシング、周波数<br>ドプラ式</td>
+            <td>折り返しを狭窄と断定<br>角度誤差を無視</td>
+          </tr>
+          <tr>
+            <td>安全に使いたい</td>
+            <td>出力↓、検査時間↓<br>TI/MI監視</td>
+            <td>吸収（TI/MI）</td>
+            <td>ドプラで出力を上げっぱなし<br>長時間固定照射</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== ナビゲーション ===== -->
+  <div class="nav-buttons">
+    <a href="sonobo_lecture.html" class="nav-btn">📚 コースに戻る</a>
+    <a href="#" class="nav-btn" style="opacity:0.5;pointer-events:none;">次のトピックへ ›</a>
+  </div>
+
+</main>
+
+<script>
+// ===== カード開閉 =====
+let openedCards = new Set();
+
+function toggleCard(header) {
+  const card = header.parentElement;
+  card.classList.toggle('open');
+  
+  const cardId = card.id;
+  if (cardId && !openedCards.has(cardId)) {
+    openedCards.add(cardId);
+    updateProgress();
+  }
+}
+
+function updateProgress() {
+  const total = 11;
+  const count = openedCards.size;
+  const pct = Math.round((count / total) * 100);
+  
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = count + ' / ' + total + ' 用語を確認';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// ===== クイズ =====
+function answer(btn, isCorrect, qId) {
+  const item = btn.closest('.quiz-item');
+  const opts = item.querySelectorAll('.quiz-opt');
+  
+  // 既に回答済みの場合は無視
+  if (btn.disabled) return;
+  
+  // 全ボタンを無効化
+  opts.forEach(opt => opt.disabled = true);
+  
+  // 正誤表示
+  if (isCorrect) {
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+    // 正解を緑に
+    opts.forEach(opt => {
+      if (!opt.classList.contains('wrong')) {
+        // find correct one - we need to check which onclick has true
+        const onclickAttr = opt.getAttribute('onclick') || '';
+        if (onclickAttr.includes('true')) {
+          opt.classList.add('correct');
+        }
+      }
+    });
+  }
+  
+  // 解説表示
+  const explanation = document.getElementById(qId);
+  if (explanation) {
+    explanation.classList.add('show');
+  }
+}
+
+// ===== スムーズスクロール =====
+document.querySelectorAll('.term-chip').forEach(chip => {
+  chip.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+      // カードを開く
+      const header = target.querySelector('.term-card-header');
+      if (header && !target.classList.contains('open')) {
+        toggleCard(header);
+      }
+    }
+  });
+});
+</script>
+
+</body>
+</html>
