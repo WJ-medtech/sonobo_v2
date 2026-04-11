@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プローブの種類と構造 — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --accent3: #9b59b6;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-back {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+  .header-title { color: white; font-family: 'M PLUS Rounded 1c', sans-serif; }
+  .header-title h1 { font-size: 1.05rem; font-weight: 800; line-height: 1.2; }
+  .header-title p { font-size: 0.72rem; opacity: 0.85; margin-top: 2px; }
+
+  .main { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  .progress-bar-wrap {
+    background: #dde8f8;
+    border-radius: 99px;
+    height: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--primary-light));
+    border-radius: 99px;
+    width: 0%;
+    transition: width 1s ease;
+  }
+
+  .chat-bubble-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+  }
+  .sonobo-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  .chat-bubble {
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    font-size: 0.92rem;
+    line-height: 1.75;
+    border-left: 4px solid var(--primary);
+  }
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.78rem;
+    margin-bottom: 5px;
+  }
+
+  .section-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin: 28px 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: fadeInUp 0.4s ease;
+  }
+  .section-header .section-icon { font-size: 2.4rem; flex-shrink: 0; }
+  .section-header h2 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  .section-header p { font-size: 0.75rem; opacity: 0.85; margin-top: 2px; }
+
+  .component-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+    border-top: 5px solid var(--primary);
+    animation: fadeInUp 0.5s ease;
+  }
+  .component-card.body-card  { border-top-color: #1a6fd4; }
+  .component-card.piezo-card { border-top-color: #00c8a0; }
+  .component-card.marker-card { border-top-color: #ff6b35; }
+  .component-card.cord-card  { border-top-color: #9b59b6; }
+
+  .component-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .component-card.body-card .component-title  { color: #1a6fd4; }
+  .component-card.piezo-card .component-title { color: #00a884; }
+  .component-card.marker-card .component-title { color: #d45a1a; }
+  .component-card.cord-card .component-title  { color: #8e44ad; }
+
+  .mode-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text-light);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .component-card .summary-box {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 10px;
+  }
+  .component-card p, .component-card li {
+    font-size: 0.88rem;
+    line-height: 1.78;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .component-card ul { padding-left: 20px; }
+
+  .tip-box {
+    background: #fff8e6;
+    border: 1.5px solid #f5c842;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: #5a3e00;
+  }
+  .tip-box strong { color: #b8860b; }
+
+  .warn-box {
+    background: #fff0f0;
+    border: 1.5px solid #ff9999;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: #5a0000;
+  }
+  .warn-box strong { color: #c00; }
+
+  .safe-box {
+    background: #f0fff8;
+    border: 1.5px solid #00c8a0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: #004a38;
+  }
+  .safe-box strong { color: #007a5a; }
+
+  /* ===== QUIZ ===== */
+  .quiz-wrap {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: var(--shadow);
+    border: 2px solid #e0e8f8;
+  }
+  .quiz-header {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .quiz-q {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .quiz-option {
+    border: 2px solid #dde8f8;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    text-align: left;
+    background: #f8faff;
+    transition: all 0.18s;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .quiz-option:hover:not(:disabled) { border-color: var(--primary-light); background: #eef5ff; }
+  .quiz-option.correct { border-color: var(--accent); background: #e6fff6; color: #006a48; font-weight: 700; }
+  .quiz-option.wrong { border-color: #ff9999; background: #fff0f0; color: #900; }
+  .quiz-explain {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #f0f7ff;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text);
+    display: none;
+    border-left: 4px solid var(--primary);
+  }
+  .quiz-explain.show { display: block; }
+
+  /* ===== TABLE ===== */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 16px 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .compare-table th {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .compare-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e8eff8;
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: #f6f9ff; }
+
+  /* ===== FLOW DIAGRAM ===== */
+  .flow-box {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    margin: 16px 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .flow-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    font-weight: 800;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .flow-text { font-size: 0.88rem; line-height: 1.65; padding-top: 4px; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .footer-nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .footer-nav a {
+    flex: 1;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    text-align: center;
+    padding: 14px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.88rem;
+    box-shadow: var(--shadow);
+    transition: opacity 0.2s;
+  }
+  .footer-nav a:hover { opacity: 0.85; }
+  .footer-nav a.secondary {
+    background: white;
+    color: var(--primary);
+    border: 2px solid #d0dff5;
+  }
+
+  .highlight {
+    background: linear-gradient(120deg, #fffde7, #fff8c4);
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-weight: 700;
+    color: #7a5000;
+  }
+
+  .probe-chip {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    margin: 2px 4px 2px 0;
+  }
+  .chip-linear { background: #e8f4ff; color: #1a6fd4; border: 1.5px solid #90c0f0; }
+  .chip-sector { background: #fff0e6; color: #c05a00; border: 1.5px solid #ffb088; }
+  .chip-convex { background: #e6fff8; color: #006a48; border: 1.5px solid #80e0c0; }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <a class="header-back" href="sonobo_lecture.html" title="目次に戻る">‹</a>
+  <div class="header-title">
+    <h1>🔬 プローブの種類と構造</h1>
+    <p>トピック 3 ／ 座学コース</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- プログレスバー -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+
+  <!-- 導入チャット -->
+  <div class="chat-bubble-wrap">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%231a6fd4'/%3E%3Ccircle cx='40' cy='30' r='16' fill='white'/%3E%3Cellipse cx='40' cy='65' rx='22' ry='18' fill='white'/%3E%3Ccircle cx='33' cy='28' r='3' fill='%231a6fd4'/%3E%3Ccircle cx='47' cy='28' r='3' fill='%231a6fd4'/%3E%3Cpath d='M34 35 Q40 41 46 35' stroke='%231a6fd4' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" alt="ソノボ君" class="sonobo-avatar">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      トピック3では<strong>プローブ（探触子）</strong>の世界へ！<br>
+      「プローブを替える＝周波数・走査特性が替わる」——なぜそうなるのか、構成部品のしくみから理解しよう。<br>
+      <strong>①プローブ本体 ②圧電素子 ③マーカー/インジケータ ④コード</strong>の4つを丁寧にみていくよ 🔬
+    </div>
+  </div>
+
+  <!-- 概要表 -->
+  <div class="section-header">
+    <span class="section-icon">📋</span>
+    <div>
+      <h2>プローブの4大構成要素</h2>
+      <p>それぞれが画質・安全・感染管理に直結する</p>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>構成要素</th>
+          <th>主な役割</th>
+          <th>POCUSでの重要ポイント</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>プローブ本体</strong></td>
+          <td>走査方式・形状・周波数帯を決定</td>
+          <td>目的臓器と深さから逆算して選択</td>
+        </tr>
+        <tr>
+          <td><strong>圧電素子</strong></td>
+          <td>電気↔超音波の変換（送受信の核）</td>
+          <td>破損は画質低下に直結。周波数・分解能の差の根本</td>
+        </tr>
+        <tr>
+          <td><strong>マーカー/インジケータ</strong></td>
+          <td>プローブの向きを画面と対応させる</td>
+          <td>左右反転は診断エラーのリスク。開始前に必ず確認</td>
+        </tr>
+        <tr>
+          <td><strong>コード（ケーブル）</strong></td>
+          <td>信号と電力の伝送</td>
+          <td>断線・被覆損傷はノイズ・感染リスクの原因</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== プローブ本体 ===== -->
+  <div class="section-header">
+    <span class="section-icon">🖐️</span>
+    <div>
+      <h2>①プローブ本体</h2>
+      <p>形状・走査方式が「見える像と得意領域」を決める</p>
+    </div>
+  </div>
+
+  <div class="component-card body-card">
+    <div class="component-title">🖐️ プローブ本体 <span class="mode-badge">形状×周波数</span></div>
+    <div class="summary-box">プローブの種類（リニア・セクタ・コンベックス等）と周波数帯が、画像の分解能・深達度・得意な観察部位を決定する</div>
+
+    <p><strong>高周波数 vs 低周波数のトレードオフ：</strong><br>
+    <span class="highlight">高周波数 → 表層の分解能◎、深部到達×</span><br>
+    <span class="highlight">低周波数 → 深部到達◎、分解能は△</span><br>
+    これが「プローブを選ぶ＝目的深度と分解能を選ぶ」の理由。</p>
+
+    <p><strong>主要3種類：</strong></p>
+
+    <div style="margin: 14px 0; background: #f8faff; border-radius: 14px; padding: 16px;">
+      <p style="font-weight:700; margin-bottom:12px;">
+        <span class="probe-chip chip-linear">リニア（高周波）</span>
+      </p>
+      <p>周波数帯：7〜15 MHz程度。観察深度：表層（5〜6 cm以浅）。<br>
+      扇状でなく平行に走査するため、像がゆがみにくい。<br>
+      <strong>得意領域：</strong>血管・胸膜・末梢神経・骨・ガイド下手技（浅い血管穿刺など）</p>
+    </div>
+
+    <div style="margin: 14px 0; background: #fff8f4; border-radius: 14px; padding: 16px;">
+      <p style="font-weight:700; margin-bottom:12px;">
+        <span class="probe-chip chip-sector">セクタ（低〜中周波）</span>
+      </p>
+      <p>周波数帯：1〜5 MHz程度。扇形（扇状）走査。フットプリント（接触面）が小さく、肋間からの観察が可能。<br>
+      <strong>得意領域：</strong>心臓（心エコー）・肋間から深部へのアクセス</p>
+    </div>
+
+    <div style="margin: 14px 0; background: #f0fff8; border-radius: 14px; padding: 16px;">
+      <p style="font-weight:700; margin-bottom:12px;">
+        <span class="probe-chip chip-convex">コンベックス（低〜中周波）</span>
+        <span class="probe-chip chip-convex">マイクロコンベックス</span>
+      </p>
+      <p>周波数帯：2〜6 MHz程度。曲面走査で扇形の広い視野が得られる。<br>
+      <strong>得意領域：</strong>腹部臓器（肝臓・腎臓・大動脈）・深部組織。マイクロコンベックスは小さいフットプリントで肋間にも使える汎用性が高い。</p>
+    </div>
+
+    <div class="tip-box">
+      <strong>💡 「最初の1本」を外さない：</strong>プローブ選択を間違えると、その後のゲイン調整等でリカバリーしにくく時間を浪費する。<strong>まず適切なプローブで「標準画像」を出す</strong>のが大原則。
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ 清潔操作と損傷回避も本体管理と一体：</strong>プローブヘッド（先端部）の損傷・落下・接触面の劣化は画質と感染リスクの両方に影響する。日常点検が必須。
+    </div>
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-wrap" id="q1">
+    <div class="quiz-header">✏️ クイズ 1</div>
+    <div class="quiz-q">表在血管（深さ2〜3 cm）のガイド下穿刺を行うとき、最も適したプローブはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',false)">A. 低周波セクタプローブ（1〜5 MHz）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',true)">B. 高周波リニアプローブ（7〜15 MHz）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',false)">C. コンベックスプローブ（2〜6 MHz）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',false)">D. マイクロコンベックス（肋間用）</button>
+    </div>
+    <div class="quiz-explain" id="q1-exp">
+      <strong>✅ 正解は B！</strong><br>
+      表在（浅い）領域の高分解能観察にはリニア（高周波）プローブが最適。7〜15 MHzは深達度こそ限られるが、表層では分解能が高く、細い血管・神経なども明確に見える。ガイド下穿刺でも針先をはっきり見るためにリニアが標準。
+    </div>
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-wrap" id="q2">
+    <div class="quiz-header">✏️ クイズ 2</div>
+    <div class="quiz-q">肋間から心臓を観察するのに向いているプローブはどれ？その理由も考えてみよう。</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',false)">A. リニア（高周波）プローブ。分解能が高いから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',true)">B. セクタプローブ。フットプリントが小さく肋間に入りやすいから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',false)">C. コンベックスプローブ。広い視野が得られるから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',false)">D. どのプローブでも変わらない</button>
+    </div>
+    <div class="quiz-explain" id="q2-exp">
+      <strong>✅ 正解は B！</strong><br>
+      セクタプローブは接触面（フットプリント）が非常に小さいため、肋間の狭いすき間からでも挿入しやすい。さらに扇形に深部まで走査できるので、深部にある心臓全体を捉えるのに適している。リニアは表層向き、コンベックスはフットプリントがやや大きく肋間では不利になる。
+    </div>
+  </div>
+
+  <!-- ===== 圧電素子 ===== -->
+  <div class="section-header">
+    <span class="section-icon">⚡</span>
+    <div>
+      <h2>②圧電素子（振動子）</h2>
+      <p>電気↔超音波の変換——すべてのモードの「源」</p>
+    </div>
+  </div>
+
+  <div class="component-card piezo-card">
+    <div class="component-title">⚡ 圧電素子 <span class="mode-badge">電気↔機械振動</span></div>
+    <div class="summary-box">電気エネルギーを機械振動（超音波）に変換して送信し、戻ってきた超音波を逆変換で電気信号として受け取る素子。プローブ内に多数配列されている</div>
+
+    <p><strong>圧電効果とは？</strong><br>
+    ある種の結晶（圧電材料）は、電圧を加えると変形（振動）し、逆に力を加えると電圧が生じる性質を持つ。この双方向の変換特性を利用することで、<span class="highlight">同じ素子で超音波の「送信」と「受信」の両方</span>を行うことができる。</p>
+
+    <p><strong>なぜプローブを替えると周波数が変わる？</strong><br>
+    圧電素子の物理的なサイズ・厚み・材質と、それを駆動する電気回路の設計によって固有振動数が決まる。<span class="highlight">プローブを替える＝素子の特性が替わる</span>ので、周波数帯・感度・ビーム形成特性などがすべて変わる。</p>
+
+    <p><strong>素子配列とビーム形成：</strong><br>
+    現代のプローブでは素子を1列（1D）または2次元配列（2D）に並べ、各素子に送る電気パルスの「タイミング差」を制御することでビームの方向・フォーカスを電子的に変える（電子ビーム形成）。これがリニア・セクタ・コンベックスの走査方式の違いの根本でもある。</p>
+
+    <div class="warn-box">
+      <strong>⚠️ 破損は画質低下に直結：</strong>素子や先端の損傷は、特定の走査線が欠損したり、ノイズが増えたりする画質異常として現れる。日常の点検（傷・はがれ・異常ノイズ）で早期発見することが重要。
+    </div>
+
+    <div class="safe-box">
+      <strong>🛡️ 安全管理（ALARA）：</strong>スペクトラルドプラ・カラーフロー・パワードプラなどのドプラ系モードは、Bモードより音響出力（熱的影響 TI・機械的影響 MI）が高くなりうる。装置画面に表示される TI・MI を確認し、ALARA（合理的に達成可能な限り低く）の原則で使用することが推奨される。
+    </div>
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-wrap" id="q3">
+    <div class="quiz-header">✏️ クイズ 3</div>
+    <div class="quiz-q">圧電素子の機能として正しい説明はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',false)">A. 超音波を受信するだけで、送信は別の素子が担当する</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',true)">B. 電気エネルギーを機械振動（超音波）に変換して送信し、受信した超音波を逆変換で電気信号に変える</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',false)">C. プローブの向きを示すためのマーカーとして機能する</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',false)">D. 装置本体と信号をやりとりするためのケーブルの一部</button>
+    </div>
+    <div class="quiz-explain" id="q3-exp">
+      <strong>✅ 正解は B！</strong><br>
+      圧電素子は電気→超音波（送信）と超音波→電気（受信）の双方向変換を同じ素子で行う。この「圧電効果」がすべての超音波モード（Bモードも、ドプラ系も）の基本。送受信を別素子で行うわけではない。
+    </div>
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-wrap" id="q4">
+    <div class="quiz-header">✏️ クイズ 4</div>
+    <div class="quiz-q">圧電素子が損傷したとき、画像上で現れる可能性がある変化はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',false)">A. 画像が全体的に青くなる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',false)">B. 時計表示が消える</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',true)">C. 特定の走査線が欠損したりノイズが増えたりする</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',false)">D. 画像全体が明るくなりすぎる</button>
+    </div>
+    <div class="quiz-explain" id="q4-exp">
+      <strong>✅ 正解は C！</strong><br>
+      圧電素子や先端が損傷すると、一部の走査線が欠けて「線状の黒い帯」が画像に現れたり、ノイズパターンが出たりする。これが「なんか画質がおかしい」の原因になる場合があるため、日常点検が重要。
+    </div>
+  </div>
+
+  <!-- ===== マーカー/インジケータ ===== -->
+  <div class="section-header">
+    <span class="section-icon">🎯</span>
+    <div>
+      <h2>③マーカー／インジケータ</h2>
+      <p>「画面の左＝プローブのどちら？」を一致させる重要サイン</p>
+    </div>
+  </div>
+
+  <div class="component-card marker-card">
+    <div class="component-title">🎯 マーカー/インジケータ <span class="mode-badge">方向の目印</span></div>
+    <div class="summary-box">プローブ側の凹凸・ランプ等（プローブマーカー）と画面側の目印（スクリーンマーカー）を対応させることで、「どちらが画面のどちらか」を判断するための目印</div>
+
+    <p><strong>しくみ：</strong>超音波プローブの側面や端には、突起・窪み・LED等の「マーカー」がある。装置画面の左端（または右端）には対応する「スクリーンマーカー（インジケータドット）」が表示される。<span class="highlight">プローブマーカーの向き＝スクリーンマーカーの向き</span>が一致するように持つことで、画面と実際の解剖の左右が対応する。</p>
+
+    <p><strong>領域によって慣習が違う：</strong><br>
+    「一般・放射線領域」と「循環器領域」では、スクリーンマーカーの左右の慣習が異なる。混乱を避けるために、<span class="highlight">自施設・自端末のルールで統一し、検査前に必ず確認</span>することが推奨されている。</p>
+
+    <div class="warn-box">
+      <strong>⚠️ 左右反転は「診断のエラー」に直結：</strong>POCUSは短時間で意思決定するため、マーカーが合っていないと解剖が反転して見え、致命的な認知エラーになりうる。特に<strong>ガイド下手技では針先・血管走行の認識が逆転して安全事故</strong>につながるため、必ず開始前にマーカー整合を確認しよう。
+    </div>
+
+    <div class="tip-box">
+      <strong>💡 確認の方法：</strong>プローブを固定した状態でプローブマーカー側を指で触れると、画面のスクリーンマーカー側に動きが出る。これで左右対応を素早く確認できる。
+    </div>
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-wrap" id="q5">
+    <div class="quiz-header">✏️ クイズ 5</div>
+    <div class="quiz-q">プローブマーカーとスクリーンマーカーの左右が一致していないとき、起こりうるリスクとして最も深刻なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',false)">A. 画像の深度が変わってしまう</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',false)">B. 超音波出力が上がって患者さんに熱的影響が出る</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',true)">C. 解剖の左右が反転して認識され、ガイド下手技等で事故が起こりうる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',false)">D. プローブが壊れる</button>
+    </div>
+    <div class="quiz-explain" id="q5-exp">
+      <strong>✅ 正解は C！</strong><br>
+      マーカーが合っていないと、画像上で右が左に見えてしまう。特にガイド下穿刺・カテーテル手技では針先と目標血管の位置関係が逆に見え、重大な事故（誤穿刺等）につながるリスクがある。短時間診断が求められるPOCUSでは特に重要。
+    </div>
+  </div>
+
+  <!-- Quiz 6 -->
+  <div class="quiz-wrap" id="q6">
+    <div class="quiz-header">✏️ クイズ 6</div>
+    <div class="quiz-q">プローブのマーカー整合を簡単に確認する方法として正しいのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',false)">A. カラーフローをONにして血流の色を確認する</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',true)">B. プローブマーカー側を指で触れ、画面のスクリーンマーカー側に動きが出るか確認する</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',false)">C. 超音波ゲルを多めに塗ると自然に合う</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',false)">D. スペクトラルドプラで波形が正の方向に出るか確認する</button>
+    </div>
+    <div class="quiz-explain" id="q6-exp">
+      <strong>✅ 正解は B！</strong><br>
+      最もシンプルな確認法は、プローブを対象に当てた状態でマーカー側を指で軽く押し、画面のスクリーンマーカー側（通常は左端）に動きが出るかを確認すること。動きが反対側に出ればマーカーが逆になっている。
+    </div>
+  </div>
+
+  <!-- ===== コード ===== -->
+  <div class="section-header">
+    <span class="section-icon">🔌</span>
+    <div>
+      <h2>④コード（ケーブル）</h2>
+      <p>信号と電力を繋ぐ——日常の取り扱いが安全と画質を守る</p>
+    </div>
+  </div>
+
+  <div class="component-card cord-card">
+    <div class="component-title">🔌 コード（ケーブル） <span class="mode-badge">信号伝送・感染管理</span></div>
+    <div class="summary-box">プローブと装置本体をつなぎ、信号・電力を伝送する部位。断線・被覆損傷はノイズ増加・感染リスクにつながる</div>
+
+    <p><strong>役割と構造：</strong><br>
+    コードの中には多数の信号線が並走しており、圧電素子（多チャンネル）の信号をすべてやりとりする。折り曲げや踏みつけなどで内部の信号線が断線すると、その走査チャンネルが欠落して画像に影響が出る。</p>
+
+    <p><strong>点検のポイント（使用前・使用後）：</strong></p>
+    <div class="flow-box" style="margin-top:10px;">
+      <div class="flow-step">
+        <div class="flow-num">①</div>
+        <div class="flow-text"><strong>ケーブル全体</strong>：ひどい折れ曲がり・傷・亀裂がないか目視確認</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">②</div>
+        <div class="flow-text"><strong>コネクタ部分</strong>：ピンの曲がり・汚れ・腐食がないか確認</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">③</div>
+        <div class="flow-text"><strong>プローブヘッド近く</strong>：付け根部分は応力がかかりやすく断線しやすい。特に注意</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">④</div>
+        <div class="flow-text"><strong>異常があれば使用中止</strong>：担当者・技術者に連絡し点検・修理を依頼</div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ 突然のノイズは「コード問題」かも：</strong>走査中に突然ノイズが増えた・信号が途切れる等の現象は、コードやコネクタの接触不良が原因の場合がある。「臓器所見」だと思って混乱する前に、機器的な問題（ケーブル・接続）も鑑別に入れよう。
+    </div>
+
+    <div class="safe-box">
+      <strong>🛡️ 感染管理と一体で管理：</strong>コードやコネクタ周辺は清拭が不十分になりやすい「死角」。プローブのリスク分類（低度・中度・高度リスク）に応じた清掃・消毒レベルを設定し、運用を統一することが必要。特に侵襲的な使用（体腔内や開放創周辺）では高水準消毒が必要になる。
+    </div>
+
+    <div class="tip-box">
+      <strong>💡 事故・転倒リスクも管理：</strong>救急・病棟での移動中にケーブルが引っかかると、プローブ落下や患者転倒の誘因になる。ケーブルの取り回しを標準化して、動線を整えよう。
+    </div>
+  </div>
+
+  <!-- Quiz 7 -->
+  <div class="quiz-wrap" id="q7">
+    <div class="quiz-header">✏️ クイズ 7</div>
+    <div class="quiz-q">超音波検査中に突然ノイズが増えた。まず確認すべきこととして最も適切なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',false)">A. ゲインを下げる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',false)">B. 深度を変える</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',true)">C. コード・コネクタの接触や状態を確認する</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',false)">D. プローブの向きを変える</button>
+    </div>
+    <div class="quiz-explain" id="q7-exp">
+      <strong>✅ 正解は C！</strong><br>
+      突然のノイズ増加は機器的問題（コード・コネクタの接触不良や断線）が原因のことがある。「これは所見か？」と考える前に、ケーブルを軽く動かしてノイズが変化しないかを確認したり、コネクタの接続を確かめたりすることが大切。
+    </div>
+  </div>
+
+  <!-- Quiz 8 -->
+  <div class="quiz-wrap" id="q8">
+    <div class="quiz-header">✏️ クイズ 8</div>
+    <div class="quiz-q">プローブの感染管理として、最も正しい考え方はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',false)">A. ヘッド部分だけ拭けばコード・コネクタは清拭不要</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',false)">B. どの用途でも同じ清拭レベルで構わない</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',true)">C. プローブのリスク分類（用途）に応じた清掃・消毒レベルを統一して運用する</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',false)">D. プローブカバーを使えば消毒は不要</button>
+    </div>
+    <div class="quiz-explain" id="q8-exp">
+      <strong>✅ 正解は C！</strong><br>
+      プローブの感染管理では、使用部位・用途によってリスク分類（低度・中度・高度）が異なり、それに応じた清掃・消毒レベルが必要。コードやコネクタ周辺も感染管理の範囲に含まれる。プローブカバーは追加的な保護であり、消毒を完全に代替するものではない。
+    </div>
+  </div>
+
+  <!-- ===== まとめクイズ ===== -->
+  <div class="section-header" style="background: linear-gradient(135deg, #6c3483, #9b59b6);">
+    <span class="section-icon">🏆</span>
+    <div>
+      <h2>まとめクイズ</h2>
+      <p>4要素を横断して確認しよう！</p>
+    </div>
+  </div>
+
+  <!-- Quiz 9 -->
+  <div class="quiz-wrap" id="q9">
+    <div class="quiz-header">✏️ クイズ 9</div>
+    <div class="quiz-q">「高周波プローブは深部に不向き、低周波プローブは表層分解能が劣る」理由として正しいのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',false)">A. 高周波プローブはコードが細いから信号が届きにくい</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',true)">B. 高周波の超音波は組織での減衰が大きく深部に届きにくい一方、波長が短くて分解能が高い。低周波は深部まで届くが波長が長くて分解能が低い</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',false)">C. 高周波プローブは圧電素子の数が少ないから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',false)">D. 低周波プローブはフットプリントが大きいから表層分解能が低い</button>
+    </div>
+    <div class="quiz-explain" id="q9-exp">
+      <strong>✅ 正解は B！</strong><br>
+      高周波の超音波は組織での減衰（吸収・散乱）が大きいため、深部まで届かない。しかし波長が短いため、解像力（分解能）が高く細部まで見える。逆に低周波は深部まで届く（減衰が小さい）が波長が長く、分解能は相対的に劣る。これが「周波数のトレードオフ」で、圧電素子の設計によって決まる。
+    </div>
+  </div>
+
+  <!-- Quiz 10 -->
+  <div class="quiz-wrap" id="q10">
+    <div class="quiz-header">✏️ クイズ 10</div>
+    <div class="quiz-q">ドプラ系モード（スペクトラルドプラ・カラーフロー・パワードプラ）使用時に特に注意すべき安全指標として正しいのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',false)">A. ゲインとTGC設定</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',true)">B. TI（熱的指数）とMI（機械的指数）、ALARAの原則</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',false)">C. プローブの走査方式（リニアかセクタか）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',false)">D. フォーカスの深度設定</button>
+    </div>
+    <div class="quiz-explain" id="q10-exp">
+      <strong>✅ 正解は B！</strong><br>
+      ドプラ系モードはBモードより音響出力が高くなりうるため、熱的影響（TI：Thermal Index）と機械的影響（MI：Mechanical Index）が重要な安全指標になる。装置画面に表示されるこれらの数値を確認し、ALARA（合理的に達成可能な限り低く）の原則のもとで使用することが推奨される。特に胎児検査や眼球では注意が必要。
+    </div>
+  </div>
+
+  <!-- Quiz 11 -->
+  <div class="quiz-wrap" id="q11">
+    <div class="quiz-header">✏️ クイズ 11</div>
+    <div class="quiz-q">以下のうち、プローブ管理における「日常点検」で確認すべき内容として最も網羅的なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',false)">A. ゲルの残量確認のみ</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',false)">B. プローブヘッドの外観のみ</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',true)">C. プローブヘッド・ケーブル・コネクタの外観確認と清拭状態の確認</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',false)">D. コネクタ部分のみ</button>
+    </div>
+    <div class="quiz-explain" id="q11-exp">
+      <strong>✅ 正解は C！</strong><br>
+      日常点検では、①プローブヘッド（傷・変形・素子欠損）、②ケーブル全体（折れ曲がり・傷・亀裂）、③コネクタ（ピンの曲がり・汚れ）の3か所すべてを確認する必要がある。また清拭・消毒の状態（汚れが残っていないか）も含めて管理する。
+    </div>
+  </div>
+
+  <!-- Quiz 12 -->
+  <div class="quiz-wrap" id="q12">
+    <div class="quiz-header">✏️ クイズ 12</div>
+    <div class="quiz-q">次の説明のうち誤っているのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',false)">A. 圧電素子は超音波の送受信を同じ素子で行う</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',false)">B. プローブマーカーとスクリーンマーカーを一致させることで解剖の左右を正確に把握できる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',true)">C. プローブカバーを使用すれば消毒の必要はない</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',false)">D. コードの断線はノイズや画質低下の原因になる</button>
+    </div>
+    <div class="quiz-explain" id="q12-exp">
+      <strong>✅ 誤りは C！</strong><br>
+      プローブカバーは追加的な感染防護として使うが、それ自体で消毒が不要になるわけではない。プローブのリスク分類に応じた清掃・消毒は必要。他の選択肢（A・B・D）はいずれも正しい記述。
+    </div>
+  </div>
+
+  <!-- 締めのチャット -->
+  <div class="chat-bubble-wrap" style="margin-top: 28px;">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%231a6fd4'/%3E%3Ccircle cx='40' cy='30' r='16' fill='white'/%3E%3Cellipse cx='40' cy='65' rx='22' ry='18' fill='white'/%3E%3Ccircle cx='33' cy='28' r='3' fill='%231a6fd4'/%3E%3Ccircle cx='47' cy='28' r='3' fill='%231a6fd4'/%3E%3Cpath d='M34 35 Q40 41 46 35' stroke='%231a6fd4' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" alt="ソノボ君" class="sonobo-avatar">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      プローブの4大要素をマスターしたね！🎉<br>
+      <strong>①本体で「目的臓器と周波数を選ぶ」②圧電素子が「送受信の核」③マーカーで「左右を合わせる」④コードを「日常管理する」</strong><br>
+      このセットが臨床でのプローブ管理の基本。次のトピックに進もう！
+    </div>
+  </div>
+
+  <!-- フッターナビ -->
+  <div class="footer-nav">
+    <a href="topic2.html" class="secondary">← 前：各モード</a>
+    <a href="sonobo_lecture.html">目次へ戻る</a>
+  </div>
+
+</main>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    document.getElementById('progressBar').style.width = Math.min(pct, 100) + '%';
+  });
+
+  function checkAnswer(btn, quizId, isCorrect) {
+    const wrap = document.getElementById(quizId);
+    const options = wrap.querySelectorAll('.quiz-option');
+    options.forEach(o => { o.disabled = true; });
+    if (isCorrect) {
+      btn.classList.add('correct');
+      btn.textContent = '✅ ' + btn.textContent;
+    } else {
+      btn.classList.add('wrong');
+      btn.textContent = '❌ ' + btn.textContent;
+    }
+    const exp = document.getElementById(quizId + '-exp');
+    if (exp) exp.classList.add('show');
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>超音波のしくみ（各モード）— ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --accent3: #9b59b6;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-back {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+
+  .header-title {
+    color: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .header-title h1 { font-size: 1.05rem; font-weight: 800; line-height: 1.2; }
+  .header-title p { font-size: 0.72rem; opacity: 0.85; margin-top: 2px; }
+
+  /* ===== MAIN ===== */
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar-wrap {
+    background: #dde8f8;
+    border-radius: 99px;
+    height: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--primary-light));
+    border-radius: 99px;
+    width: 0%;
+    transition: width 1s ease;
+  }
+
+  /* ===== SONOBO CHAT ===== */
+  .chat-bubble-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+  }
+  .chat-bubble-wrap.right {
+    flex-direction: row-reverse;
+  }
+
+  .sonobo-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .chat-bubble {
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    font-size: 0.92rem;
+    line-height: 1.75;
+    border-left: 4px solid var(--primary);
+    position: relative;
+  }
+  .chat-bubble-wrap.right .chat-bubble {
+    border-radius: 20px 20px 4px 20px;
+    border-left: none;
+    border-right: 4px solid var(--accent);
+    background: #f0fff8;
+  }
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.78rem;
+    margin-bottom: 5px;
+  }
+  .chat-bubble-wrap.right .chat-bubble .speaker {
+    color: var(--accent);
+  }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin: 28px 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: fadeInUp 0.4s ease;
+  }
+  .section-header .section-icon { font-size: 2.4rem; flex-shrink: 0; }
+  .section-header h2 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  .section-header p { font-size: 0.75rem; opacity: 0.85; margin-top: 2px; }
+
+  /* ===== INFO CARD ===== */
+  .info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--primary);
+    animation: fadeInUp 0.4s ease;
+  }
+  .info-card h3 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .info-card p, .info-card li {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--text);
+  }
+  .info-card ul {
+    padding-left: 20px;
+    margin-top: 6px;
+  }
+  .info-card li { margin-bottom: 4px; }
+
+  /* Mode cards */
+  .mode-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+    border-top: 5px solid var(--primary);
+    animation: fadeInUp 0.5s ease;
+  }
+  .mode-card.b-mode { border-top-color: #1a6fd4; }
+  .mode-card.m-mode { border-top-color: #00c8a0; }
+  .mode-card.color-mode { border-top-color: #ff6b35; }
+  .mode-card.power-mode { border-top-color: #e74c3c; }
+  .mode-card.spectral-mode { border-top-color: #9b59b6; }
+
+  .mode-card .mode-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mode-card.b-mode .mode-title { color: #1a6fd4; }
+  .mode-card.m-mode .mode-title { color: #00a884; }
+  .mode-card.color-mode .mode-title { color: #d45a1a; }
+  .mode-card.power-mode .mode-title { color: #c0392b; }
+  .mode-card.spectral-mode .mode-title { color: #8e44ad; }
+
+  .mode-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text-light);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .mode-card .mode-summary {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 10px;
+  }
+
+  .mode-card p, .mode-card li {
+    font-size: 0.88rem;
+    line-height: 1.78;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .mode-card ul { padding-left: 20px; }
+
+  .tip-box {
+    background: #fff8e6;
+    border: 1.5px solid #f5c842;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: #5a3e00;
+  }
+  .tip-box strong { color: #b8860b; }
+
+  .warn-box {
+    background: #fff0f0;
+    border: 1.5px solid #ff9999;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: #5a0000;
+  }
+  .warn-box strong { color: #c00; }
+
+  /* ===== QUIZ ===== */
+  .quiz-wrap {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: var(--shadow);
+    border: 2px solid #e0e8f8;
+  }
+  .quiz-header {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .quiz-q {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .quiz-option {
+    border: 2px solid #dde8f8;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    text-align: left;
+    background: #f8faff;
+    transition: all 0.18s;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .quiz-option:hover:not(:disabled) {
+    border-color: var(--primary-light);
+    background: #eef5ff;
+  }
+  .quiz-option.correct {
+    border-color: var(--accent);
+    background: #e6fff6;
+    color: #006a48;
+    font-weight: 700;
+  }
+  .quiz-option.wrong {
+    border-color: #ff9999;
+    background: #fff0f0;
+    color: #900;
+  }
+  .quiz-explain {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #f0f7ff;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text);
+    display: none;
+    border-left: 4px solid var(--primary);
+  }
+  .quiz-explain.show { display: block; }
+
+  /* ===== TABLE ===== */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 16px 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .compare-table th {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .compare-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e8eff8;
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: #f6f9ff; }
+
+  /* ===== FLOW DIAGRAM ===== */
+  .flow-box {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    margin: 16px 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .flow-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    font-weight: 800;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .flow-text {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    padding-top: 4px;
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== FOOTER ===== */
+  .footer-nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .footer-nav a {
+    flex: 1;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    text-align: center;
+    padding: 14px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.88rem;
+    box-shadow: var(--shadow);
+    transition: opacity 0.2s;
+  }
+  .footer-nav a:hover { opacity: 0.85; }
+  .footer-nav a.secondary {
+    background: white;
+    color: var(--primary);
+    border: 2px solid #d0dff5;
+  }
+
+  .highlight {
+    background: linear-gradient(120deg, #fffde7, #fff8c4);
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-weight: 700;
+    color: #7a5000;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <a class="header-back" href="sonobo_lecture.html" title="目次に戻る">‹</a>
+  <div class="header-title">
+    <h1>📡 超音波のしくみ（各モード）</h1>
+    <p>トピック 2 ／ 座学コース</p>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+  <!-- プログレスバー -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+
+  <!-- 導入チャット -->
+  <div class="chat-bubble-wrap">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%231a6fd4'/%3E%3Ccircle cx='40' cy='30' r='16' fill='white'/%3E%3Cellipse cx='40' cy='65' rx='22' ry='18' fill='white'/%3E%3Ccircle cx='33' cy='28' r='3' fill='%231a6fd4'/%3E%3Ccircle cx='47' cy='28' r='3' fill='%231a6fd4'/%3E%3Cpath d='M34 35 Q40 41 46 35' stroke='%231a6fd4' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" alt="ソノボ君" class="sonobo-avatar">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      このトピックでは、POCUSで使われる<strong>5つの超音波モード</strong>を一緒に学ぼう！<br>
+      Bモード・Mモード・カラーフロー・パワードプラ・スペクトラルドプラ——それぞれの「しくみ」と「使い方」を押さえると、臨床の判断がぐっと上がるよ 🎯
+    </div>
+  </div>
+
+  <!-- ===== 導入：モード比較表 ===== -->
+  <div class="section-header">
+    <span class="section-icon">🗺️</span>
+    <div>
+      <h2>まずは5モードを俯瞰しよう</h2>
+      <p>どのモードも「超音波の送受信」が基本。目的に応じて使い分けるよ</p>
+    </div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%231a6fd4'/%3E%3Ccircle cx='40' cy='30' r='16' fill='white'/%3E%3Cellipse cx='40' cy='65' rx='22' ry='18' fill='white'/%3E%3Ccircle cx='33' cy='28' r='3' fill='%231a6fd4'/%3E%3Ccircle cx='47' cy='28' r='3' fill='%231a6fd4'/%3E%3Cpath d='M34 35 Q40 41 46 35' stroke='%231a6fd4' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" alt="ソノボ君" class="sonobo-avatar">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      全モードに共通する大前提があるよ。<span class="highlight">プローブ内の圧電素子が電気振動を超音波に変換して送信し、戻ってきた超音波を再び電気信号として受け取る</span>——これがすべての基本なんだ。<br>
+      各モードはこの信号をどう「料理するか」の違いだよ。
+    </div>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>モード</th>
+          <th>何を見る？</th>
+          <th>強み</th>
+          <th>落とし穴</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Bモード</strong></td>
+          <td>エコー強度→輝度で2D断層像</td>
+          <td>形態・解剖の基本。ほぼ全POCUSの起点</td>
+          <td>深部暗化、音響陰影・後方増強</td>
+        </tr>
+        <tr>
+          <td><strong>Mモード</strong></td>
+          <td>1走査線上の位置変化を時間軸で表示</td>
+          <td>速い運動を時間分解で追える（心・胸膜）</td>
+          <td>カーソル位置次第で誤解釈</td>
+        </tr>
+        <tr>
+          <td><strong>カラーフロー</strong></td>
+          <td>血流の方向・速度を色で重畳</td>
+          <td>血流の有無・方向を直感的に把握</td>
+          <td>ゲイン過多でブルーミング、エイリアシング</td>
+        </tr>
+        <tr>
+          <td><strong>パワードプラ</strong></td>
+          <td>ドプラ信号の「強さ」を色で表示</td>
+          <td>低流速・微小血流の検出に有利</td>
+          <td>方向・速度はわからない</td>
+        </tr>
+        <tr>
+          <td><strong>スペクトラルドプラ</strong></td>
+          <td>速度成分を波形として時間表示</td>
+          <td>速度の定量（PSV/EDV等）</td>
+          <td>角度依存、折り返し（PW）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== Bモード ===== -->
+  <div class="section-header">
+    <span class="section-icon">🔵</span>
+    <div>
+      <h2>Bモード（Brightness Mode）</h2>
+      <p>超音波検査の「土台」——まずここを整えることが最優先</p>
+    </div>
+  </div>
+
+  <div class="mode-card b-mode">
+    <div class="mode-title">🔵 Bモード <span class="mode-badge">基本中の基本</span></div>
+    <div class="mode-summary">「反射エコーの強さ」を「輝度（明るさ）」に変換して2次元断層像を作るモード</div>
+
+    <p><strong>しくみ：</strong>プローブから送られたパルス超音波が組織に当たって反射する。その反射の強さ（＝音響インピーダンスの差）を輝度に置き換え、走査線を束にして2D画像にするのがBモードだよ。</p>
+
+    <p>大事なのが<span class="highlight">「画像は組織そのものだけで決まらない」</span>こと。深度・フォーカス・ゲイン・STC/TGCなどの装置設定が画質に大きく影響するから、観察前にこれらを整える作業（knobology）が欠かせない。</p>
+
+    <p><strong>Bモード適正化の手順（POCUS実践）：</strong></p>
+    <div class="flow-box" style="margin-top:10px;">
+      <div class="flow-step">
+        <div class="flow-num">①</div>
+        <div class="flow-text"><strong>深度</strong>を調整して、目的構造が画面中央付近に来るようにする</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">②</div>
+        <div class="flow-text"><strong>ゲイン</strong>を全体が白飛び・黒つぶれしない範囲に調整する</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">③</div>
+        <div class="flow-text"><strong>フォーカス</strong>を目的深度に合わせる（分解能が最大になる部位）</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">④</div>
+        <div class="flow-text"><strong>STC/TGC</strong>（深部補正）を調整して、深部が暗くならないようにする</div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <strong>💡 臨床ポイント：</strong>プリセット（臓器別の初期設定）が目的と合っていないと画質が崩れやすい。最初に適切なプリセットを選ぶことが「出発点」。
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ よくある間違い：</strong>ゲインやSTC/TGCを上げすぎると、無エコーであるべき液体（胆汁・尿・腹水など）が内部エコーを持つように見えてしまう。「液体に見えない」ときは設定を疑おう。
+    </div>
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-wrap" id="q1">
+    <div class="quiz-header">✏️ クイズ 1</div>
+    <div class="quiz-q">Bモードの「B」は何の略？正しい意味を選んでね。</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',false)">A. Basic（基本）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',true)">B. Brightness（輝度）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',false)">C. Blood（血液）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q1',false)">D. Beam（超音波ビーム）</button>
+    </div>
+    <div class="quiz-explain" id="q1-exp">
+      <strong>✅ 正解は B. Brightness（輝度）！</strong><br>
+      Bモードは反射エコーの強さを「明るさ（輝度）」に変換して表示するから、Brightness Modeと呼ばれる。反射が強いほど明るく（白く）、弱いほど暗く（黒く）表示されるよ。
+    </div>
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-wrap" id="q2">
+    <div class="quiz-header">✏️ クイズ 2</div>
+    <div class="quiz-q">Bモード画像の最適化の順番として最も適切なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',false)">A. ゲイン → 深度 → STC → フォーカス</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',true)">B. 深度 → ゲイン → フォーカス → STC/TGC</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',false)">C. フォーカス → ゲイン → 深度 → プリセット</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q2',false)">D. STC/TGC → フォーカス → 深度 → ゲイン</button>
+    </div>
+    <div class="quiz-explain" id="q2-exp">
+      <strong>✅ 正解は B！</strong><br>
+      まず「深度」で目的構造を画面中央付近に持ってくる。次に「ゲイン」で全体の明るさを整える。「フォーカス」を目的深度に合わせて分解能を最大化。最後に深部が暗ければ「STC/TGC」で補正する、という流れが基本。
+    </div>
+  </div>
+
+  <!-- ===== Mモード ===== -->
+  <div class="section-header">
+    <span class="section-icon">📈</span>
+    <div>
+      <h2>Mモード（Motion Mode）</h2>
+      <p>「動き」を時間軸に記録する——胸膜・心臓に強い</p>
+    </div>
+  </div>
+
+  <div class="mode-card m-mode">
+    <div class="mode-title">📈 Mモード <span class="mode-badge">運動の記録</span></div>
+    <div class="mode-summary">1本の走査線上のエコー変化を横軸（時間）に展開して「動きの波形」を可視化するモード</div>
+
+    <p><strong>しくみ：</strong>同じ走査線に繰り返しパルスを送り、位置変化を時間とともに表示する。2D空間情報は限られるが、心臓弁の細かい動き・胸膜スライディングのオン/オフなど、<span class="highlight">「速い動き」を時間分解で証拠として残す</span>のに向いている。</p>
+
+    <p><strong>POCUSでの主な用途：</strong></p>
+    <ul>
+      <li>胸膜スライディングの有無（気胸スクリーニング）</li>
+      <li>心臓の弁・壁運動の確認</li>
+      <li>下大静脈（IVC）の呼吸性変動</li>
+    </ul>
+
+    <div class="tip-box">
+      <strong>💡 「カーソル位置が命」：</strong>MカーソルをBモード画像上で狙った構造に正確に置かないと無意味な波形になってしまう。<strong>必ずBモードで構造を同定してから</strong>Mカーソルを置こう。
+    </div>
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-wrap" id="q3">
+    <div class="quiz-header">✏️ クイズ 3</div>
+    <div class="quiz-q">Mモードを使う前にまずすべき操作はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',false)">A. カラーフローをONにしてからMカーソルを置く</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',true)">B. Bモードで目的構造を同定してからMカーソルを置く</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',false)">C. スペクトラルドプラで流速を確認してからMモードに切り替える</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q3',false)">D. 深度をできるだけ浅く設定する</button>
+    </div>
+    <div class="quiz-explain" id="q3-exp">
+      <strong>✅ 正解は B！</strong><br>
+      Mモードは「カーソル位置がすべて」。Bモードで目的構造（胸膜・弁など）をしっかり同定し、そこにMカーソルを正確に置いてから切り替えることが重要。カーソルがずれると、関係ない構造の波形になってしまう。
+    </div>
+  </div>
+
+  <!-- ===== カラーフロー ===== -->
+  <div class="section-header">
+    <span class="section-icon">🌈</span>
+    <div>
+      <h2>カラーフロー（カラードプラ法）</h2>
+      <p>血流の「方向」と「速度の概略」を色で重ねて見る</p>
+    </div>
+  </div>
+
+  <div class="mode-card color-mode">
+    <div class="mode-title">🌈 カラーフロー <span class="mode-badge">血流の方向・存在</span></div>
+    <div class="mode-summary">ドプラ情報から推定した血流の方向・速度を色でBモード像に重畳するモード。<br>一般に「プローブに近づく流れ＝赤、遠ざかる流れ＝青」</div>
+
+    <p><strong>しくみ（概要）：</strong>カラーBOX内の各点に複数のパルスを送り、位相変化（ドプラ偏移）から平均速度や分散などを推定して色に変換。<span class="highlight">POCUSの基本はBモードだが、カラーフローは血流の有無・方向の直感的把握に有用</span>で、診断・意思決定を補助するよ。</p>
+
+    <p><strong>主な目的（臨床）：</strong></p>
+    <ul>
+      <li>血流の有無・方向の確認</li>
+      <li>狭窄・閉塞・シャント・逆流のスクリーニング</li>
+      <li>Bモードだけでは確信できない病態の補助情報</li>
+    </ul>
+
+    <div class="warn-box">
+      <strong>⚠️ ブルーミングに注意：</strong>カラーゲインを上げすぎると、ランダムノイズが増えて血管が「塗りつぶされる（ブルーミング）」。Bモード上で血管を同定できる程度に抑えてからカラーを適正化するのが鉄則！
+    </div>
+
+    <div class="tip-box">
+      <strong>💡 エイリアシング（折り返し）：</strong>血流速度がPRFの限界（ナイキスト限界 = PRF/2）を超えると色が「モザイク状」になったり反転したりする。これは「病的乱流」と間違いやすいので注意。対処法は速度レンジ/PRFを上げるか、ベースラインを移動すること。
+    </div>
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-wrap" id="q4">
+    <div class="quiz-header">✏️ クイズ 4</div>
+    <div class="quiz-q">カラーフローで「ブルーミング」が起きているとき、最初に試みるべき操作はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',false)">A. 深度を深くする</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',true)">B. カラーゲインを下げる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',false)">C. プローブを変える</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q4',false)">D. PRFを上げる</button>
+    </div>
+    <div class="quiz-explain" id="q4-exp">
+      <strong>✅ 正解は B！</strong><br>
+      ブルーミングはカラーゲインが過剰なときに起きる現象。まず「カラーゲインを下げる」のが第一手。PRFを上げるのはエイリアシング（折り返し）への対処で、ブルーミングとは別の問題。
+    </div>
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-wrap" id="q5">
+    <div class="quiz-header">✏️ クイズ 5</div>
+    <div class="quiz-q">カラーフローでモザイク状（赤・青が混在する模様）が見えた。考えられる原因として最も適切なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',false)">A. プローブのマーカーが逆になっている</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',false)">B. カラーゲインが低すぎる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',true)">C. 血流速度がナイキスト限界を超えてエイリアシングが起きている</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q5',false)">D. 深度設定が浅すぎる</button>
+    </div>
+    <div class="quiz-explain" id="q5-exp">
+      <strong>✅ 正解は C！</strong><br>
+      モザイク状のパターン（エイリアシング）は、血流速度がPRFの上限（PRF/2 ＝ ナイキスト限界）を超えると起きる。速度レンジ/PRFを上げる・ベースラインを移動する・測定深度を浅くする（PRFの上限が上がる）などで対処できる。
+    </div>
+  </div>
+
+  <!-- ===== パワードプラ ===== -->
+  <div class="section-header">
+    <span class="section-icon">🔴</span>
+    <div>
+      <h2>パワードプラ（パワーモード）</h2>
+      <p>「血流があるかどうか」を感度高く検出する</p>
+    </div>
+  </div>
+
+  <div class="mode-card power-mode">
+    <div class="mode-title">🔴 パワードプラ <span class="mode-badge">低流速検出</span></div>
+    <div class="mode-summary">ドプラ信号の「強さ（パワー・振幅）」を色で表示するモード。方向・速度は原則わからないが、低流速に強い</div>
+
+    <p><strong>しくみ：</strong>カラーフローが「速度の方向と概略」を表示するのに対し、パワードプラはドプラ信号の<span class="highlight">強度（パワー）の積分</span>を表示する。速度情報は捨てるが、その分ノイズへの耐性が高く、低速血流や微小血流の検出感度が相対的に高い。</p>
+
+    <p><strong>カラーフローとの違いまとめ：</strong></p>
+    <ul>
+      <li>方向・速度：<strong>カラーフロー○、パワードプラ×</strong></li>
+      <li>低速・微小血流の検出：<strong>カラーフロー△、パワードプラ○</strong></li>
+      <li>体動アーチファクト：<strong>パワードプラはやや出やすい</strong></li>
+    </ul>
+
+    <div class="tip-box">
+      <strong>💡 使い所：</strong>カラーフローで信号が乗らない/途切れるときに、「血流が本当にあるか」を確認する用途として有用。
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ 体動アーチファクト：</strong>体動やプローブ圧で偽のパワー信号が出ることがある。Bモードで血管・臓器を確認し、同一断面で再現性をみることが大切。
+    </div>
+  </div>
+
+  <!-- Quiz 6 -->
+  <div class="quiz-wrap" id="q6">
+    <div class="quiz-header">✏️ クイズ 6</div>
+    <div class="quiz-q">パワードプラとカラーフローを比較した記述として正しいのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',false)">A. パワードプラは血流の方向もわかる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',false)">B. カラーフローの方がパワードプラより低流速検出に有利</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',true)">C. パワードプラは低流速・微小血流の検出感度が相対的に高い</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q6',false)">D. パワードプラは体動アーチファクトが出ない</button>
+    </div>
+    <div class="quiz-explain" id="q6-exp">
+      <strong>✅ 正解は C！</strong><br>
+      パワードプラはドプラ信号の「強さ（パワー）」を表示するため、方向情報は捨てている（A・Bは誤り）。その代わり低流速・微小血流への感度が相対的に高い。体動アーチファクトはむしろ出やすい傾向がある（Dは誤り）。
+    </div>
+  </div>
+
+  <!-- ===== スペクトラルドプラ ===== -->
+  <div class="section-header">
+    <span class="section-icon">📊</span>
+    <div>
+      <h2>スペクトラルドプラ（PW / CW）</h2>
+      <p>血流速度を「波形」として定量化する</p>
+    </div>
+  </div>
+
+  <div class="mode-card spectral-mode">
+    <div class="mode-title">📊 スペクトラルドプラ <span class="mode-badge">速度の定量</span></div>
+    <div class="mode-summary">ドプラ周波数シフトをFFT等で解析し、血流速度（成分）を時間波形（スペクトル）として表示するモード。PW（パルス波）とCW（連続波）に大別される</div>
+
+    <p><strong>基本原理（ドプラ効果）：</strong><br>
+    血流速度 v、送信周波数 f₀、音速 c、入射角 θ のとき、ドプラ周波数シフト Δf は：</p>
+
+    <div style="background: #f0f7ff; border-radius: 12px; padding: 14px 18px; margin: 10px 0; text-align: center; font-size: 1rem; font-weight: 700; color: var(--primary-dark);">
+      Δf = 2f₀ · v · cosθ / c
+    </div>
+
+    <p>この式から、<span class="highlight">入射角θが90°に近いと cosθ → 0 となり、速度が正確に計測できなくなる</span>。角度は60°以内に収めるのが原則。</p>
+
+    <p><strong>PW（パルス波）ドプラ：</strong></p>
+    <ul>
+      <li>「サンプルゲート」を血管の特定の場所に置いて、その部分の速度を測る</li>
+      <li>深さ（距離）分解能あり → どこを測っているか明確</li>
+      <li>ナイキスト限界（PRF/2）を超える速度は「折り返し（エイリアシング）」が起きる</li>
+    </ul>
+
+    <p><strong>CW（連続波）ドプラ：</strong></p>
+    <ul>
+      <li>ビーム上のすべての部分から返ってくる速度の最大値を計測できる</li>
+      <li>高速血流（例：重篤な大動脈弁狭窄）の評価に適する</li>
+      <li>深さ分解能がない → どこの血流かは区別できない</li>
+    </ul>
+
+    <div class="tip-box">
+      <strong>💡 角度補正とサンプルゲート：</strong>PWドプラでは、まずカラーフローで血管を同定 → サンプルゲートを血管中心に置く → 角度補正を正確に行う、という手順が重要。サンプルゲートサイズも血管径に合わせて調整しよう。
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ 折り返し（エイリアシング）の対処：</strong>速度レンジ（PRF）を上げる → ベースラインを移動 → 測定深度を浅く（PRF上限が上がる） → 送信周波数を下げる（Δfが下がる） → それでも高速ならCWを検討。
+    </div>
+  </div>
+
+  <!-- Quiz 7 -->
+  <div class="quiz-wrap" id="q7">
+    <div class="quiz-header">✏️ クイズ 7</div>
+    <div class="quiz-q">ドプラ周波数シフトの式 Δf = 2f₀·v·cosθ/c において、計測誤差が最も大きくなる状況はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',false)">A. θ = 0°（超音波と血流が平行）のとき</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',true)">B. θが90°に近いとき（超音波と血流がほぼ垂直）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',false)">C. 送信周波数 f₀ が高いとき</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q7',false)">D. 血流速度 v が速いとき</button>
+    </div>
+    <div class="quiz-explain" id="q7-exp">
+      <strong>✅ 正解は B！</strong><br>
+      cos90° = 0 なので、θが90°に近いほど Δf → 0 となり、速度計測ができなくなる。θ=0°（平行）のとき cos0°=1 で最大感度。60°を超えると誤差が大きくなるため、できるだけビームを血流に平行に近づけることが基本。
+    </div>
+  </div>
+
+  <!-- Quiz 8 -->
+  <div class="quiz-wrap" id="q8">
+    <div class="quiz-header">✏️ クイズ 8</div>
+    <div class="quiz-q">PWドプラで折り返し（エイリアシング）が起きた。正しい対処順として最も適切なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',false)">A. まずCWに切り替える（折り返しはCWで起きない）</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',false)">B. プローブを高周波に換える</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',true)">C. まず速度レンジ/PRFを上げ、次にベースライン移動などを試みる</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q8',false)">D. カラーゲインを下げる</button>
+    </div>
+    <div class="quiz-explain" id="q8-exp">
+      <strong>✅ 正解は C！</strong><br>
+      折り返しの対処は①速度レンジ（PRF）を上げる → ②ベースラインを移動して表示上のレンジを広げる → ③測定深度を浅くする（PRFの上限が上がる）→ ④送信周波数を下げる → それでも解決しなければCWへ、という流れが基本。いきなりCWに切り替えると深さ分解能が失われる点に注意。
+    </div>
+  </div>
+
+  <!-- Quiz 9 -->
+  <div class="quiz-wrap" id="q9">
+    <div class="quiz-header">✏️ クイズ 9</div>
+    <div class="quiz-q">CWドプラの特徴として正しいものをすべて含む選択肢はどれ？<br>① 高速血流の評価に適する ② 深さ（距離）分解能がある ③ PRFによる折り返しが起きない</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',false)">A. ①のみ</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',true)">B. ①と③</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',false)">C. ①②③すべて</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q9',false)">D. ②③のみ</button>
+    </div>
+    <div class="quiz-explain" id="q9-exp">
+      <strong>✅ 正解は B（①と③）！</strong><br>
+      CWドプラは連続的に送受信するため、PRFの制約がなく折り返しが起きない（③正しい）。そのため高速血流の計測に向いている（①正しい）。ただし深さ分解能は「ない」——ビーム上のすべての部分の信号が混在するので「どこの血流か」を区別できない（②は誤り）。
+    </div>
+  </div>
+
+  <!-- ===== 総まとめクイズ ===== -->
+  <div class="section-header" style="background: linear-gradient(135deg, #9b59b6, #6c3483);">
+    <span class="section-icon">🏆</span>
+    <div>
+      <h2>まとめクイズ</h2>
+      <p>5モードを横断して確認しよう！</p>
+    </div>
+  </div>
+
+  <!-- Quiz 10 -->
+  <div class="quiz-wrap" id="q10">
+    <div class="quiz-header">✏️ クイズ 10</div>
+    <div class="quiz-q">POCUSの「基本はBモード」と言われる理由として最も適切なのはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',false)">A. Bモードだけで血流の速度が計測できるから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',true)">B. 形態・解剖評価の基盤となり、ほぼすべてのPOCUS評価の起点になるから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',false)">C. ドプラ系モードよりも熱的影響（TI）が高いから</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q10',false)">D. 低流速血流の検出が最も得意だから</button>
+    </div>
+    <div class="quiz-explain" id="q10-exp">
+      <strong>✅ 正解は B！</strong><br>
+      Bモードは形態・解剖評価の土台であり、ドプラ法（カラーフロー・パワー・スペクトラル）は「必須ではないが有用な補助ツール」として位置付けられている。まずBモードで構造を把握し、その後必要に応じてドプラを追加するのが基本の流れ。
+    </div>
+  </div>
+
+  <!-- Quiz 11 -->
+  <div class="quiz-wrap" id="q11">
+    <div class="quiz-header">✏️ クイズ 11</div>
+    <div class="quiz-q">次のうち「方向情報をもたない」超音波モードはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',false)">A. カラーフロー</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',true)">B. パワードプラ</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',false)">C. PWドプラ</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q11',false)">D. CWドプラ</button>
+    </div>
+    <div class="quiz-explain" id="q11-exp">
+      <strong>✅ 正解は B！</strong><br>
+      パワードプラはドプラ信号の「強さ（パワー・振幅）」を色で表示するモードで、速度や方向の情報は持たない。カラーフローは方向と概略速度を、PW/CWドプラは速度の定量を行う。
+    </div>
+  </div>
+
+  <!-- Quiz 12 -->
+  <div class="quiz-wrap" id="q12">
+    <div class="quiz-header">✏️ クイズ 12</div>
+    <div class="quiz-q">「気胸のスクリーニング」で胸膜スライディングの有無を確認するのに最も適したモードの組み合わせはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',true)">A. BモードとMモード</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',false)">B. カラーフローとパワードプラ</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',false)">C. CWドプラとBモード</button>
+      <button class="quiz-option" onclick="checkAnswer(this,'q12',false)">D. パワードプラとMモード</button>
+    </div>
+    <div class="quiz-explain" id="q12-exp">
+      <strong>✅ 正解は A！</strong><br>
+      気胸スクリーニングでは、まずBモードで胸膜ラインを同定してスライディングの有無をリアルタイムに観察。次にMモードでMカーソルを胸膜に置き、「砂浜（seashore sign）」と「バーコードサイン」を比較する。カラーフローやスペクトラルドプラは主に血流評価に使うモードで、この目的には適さない。
+    </div>
+  </div>
+
+  <!-- 締めのチャット -->
+  <div class="chat-bubble-wrap" style="margin-top: 28px;">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%231a6fd4'/%3E%3Ccircle cx='40' cy='30' r='16' fill='white'/%3E%3Cellipse cx='40' cy='65' rx='22' ry='18' fill='white'/%3E%3Ccircle cx='33' cy='28' r='3' fill='%231a6fd4'/%3E%3Ccircle cx='47' cy='28' r='3' fill='%231a6fd4'/%3E%3Cpath d='M34 35 Q40 41 46 35' stroke='%231a6fd4' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" alt="ソノボ君" class="sonobo-avatar">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      お疲れ様！5つのモードを制覇したね 🎉<br>
+      次はプローブの「構造」を学ぼう。プローブを替える＝周波数・走査特性が替わる——この理由も圧電素子のしくみと深くつながってるよ。トピック3へどうぞ！
+    </div>
+  </div>
+
+  <!-- フッターナビ -->
+  <div class="footer-nav">
+    <a href="sonobo_lecture.html" class="secondary">← 目次へ</a>
+    <a href="topic3.html">次：プローブの構造 →</a>
+  </div>
+
+</main>
+
+<script>
+  // プログレスバー（ページ下まで進んだら100%）
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    document.getElementById('progressBar').style.width = Math.min(pct, 100) + '%';
+  });
+
+  // クイズ判定
+  function checkAnswer(btn, quizId, isCorrect) {
+    const wrap = document.getElementById(quizId);
+    const options = wrap.querySelectorAll('.quiz-option');
+    options.forEach(o => { o.disabled = true; });
+    if (isCorrect) {
+      btn.classList.add('correct');
+      btn.textContent = '✅ ' + btn.textContent;
+    } else {
+      btn.classList.add('wrong');
+      btn.textContent = '❌ ' + btn.textContent;
+      // 正解ボタンを強調
+      options.forEach(o => {
+        if (!o.classList.contains('wrong')) {
+          // 正解のボタンを探して強調する（onclick属性のtrue引数で判定）
+        }
+      });
+    }
+    const exp = document.getElementById(quizId + '-exp');
+    if (exp) exp.classList.add('show');
+  }
+</script>
+
+</body>
+</html>
