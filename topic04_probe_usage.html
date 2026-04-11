@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4. プローブの使い分け — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --accent3: #f7b731;
+    --accent4: #8854d0;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+    --border: #e0e8f8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-back {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+
+  .header-title {
+    color: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    flex: 1;
+  }
+  .header-title h1 { font-size: 1.05rem; font-weight: 800; line-height: 1.2; }
+  .header-title p { font-size: 0.7rem; opacity: 0.85; font-weight: 400; }
+
+  .header-badge {
+    background: rgba(255,255,255,0.22);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: white;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  /* ===== MAIN ===== */
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-wrap {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    animation: fadeInUp 0.3s ease;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #e0e8f8;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* ===== CHAT BUBBLE ===== */
+  .chat-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .sonobo-avatar {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .chat-bubble {
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    border-left: 4px solid var(--primary);
+    position: relative;
+  }
+  .chat-bubble::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    bottom: 14px;
+    border: 8px solid transparent;
+    border-right-color: white;
+    border-left: none;
+  }
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.78rem;
+    margin-bottom: 5px;
+  }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeInUp 0.4s ease;
+  }
+  .section-title .icon { font-size: 2rem; flex-shrink: 0; }
+  .section-title h2 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  .section-title p { font-size: 0.74rem; opacity: 0.85; margin-top: 2px; }
+
+  /* ===== PROBE CARD ===== */
+  .probe-section {
+    margin-bottom: 32px;
+    animation: fadeInUp 0.45s ease;
+  }
+
+  .probe-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 16px 16px 0 0;
+    color: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .probe-header.linear { background: linear-gradient(135deg, #1a6fd4, #4a9eff); }
+  .probe-header.curved { background: linear-gradient(135deg, #00a87e, #00c8a0); }
+  .probe-header.phased  { background: linear-gradient(135deg, #8854d0, #b07ce8); }
+  .probe-header.transvaginal { background: linear-gradient(135deg, #d4416f, #f76f99); }
+
+  .probe-icon { font-size: 2.2rem; flex-shrink: 0; }
+  .probe-header h3 { font-size: 1.05rem; font-weight: 800; }
+  .probe-header .tagline { font-size: 0.76rem; opacity: 0.9; margin-top: 2px; }
+
+  .probe-body {
+    background: white;
+    border-radius: 0 0 16px 16px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  /* ===== DIALOG ===== */
+  .dialog-block {
+    margin-bottom: 16px;
+  }
+
+  .dialog-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .dialog-row.sonobo { flex-direction: row; }
+  .dialog-row.user { flex-direction: row-reverse; }
+
+  .dialog-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .dialog-avatar.sonobo-av { background: linear-gradient(135deg,#4a9eff,#00c8a0); }
+  .dialog-avatar.user-av   { background: linear-gradient(135deg,#ff6b35,#f7b731); }
+
+  .dialog-text {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+  .dialog-row.sonobo .dialog-text {
+    background: #f0f6ff;
+    border-radius: 4px 16px 16px 16px;
+  }
+  .dialog-row.user .dialog-text {
+    background: linear-gradient(135deg, #e8f4ff, #d5ecff);
+    border-radius: 16px 4px 16px 16px;
+    text-align: right;
+  }
+
+  /* ===== INFO BOX ===== */
+  .info-box {
+    background: #f8faff;
+    border: 1.5px solid #d0ddf8;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.86rem;
+    line-height: 1.7;
+  }
+  .info-box.green  { background: #f0faf6; border-color: #b0e8d0; }
+  .info-box.purple { background: #f7f0ff; border-color: #d0b8f8; }
+  .info-box.pink   { background: #fff0f5; border-color: #f8b0c8; }
+  .info-box.orange { background: #fff7f0; border-color: #f8d0a8; }
+  .info-box.red    { background: #fff0f0; border-color: #f8b0b0; }
+
+  .info-box h4 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 10px 0;
+  }
+  .spec-table th, .spec-table td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .spec-table th {
+    background: #e8f0ff;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin: 2px 3px 2px 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .tag.blue   { background: #e0edff; color: #1a6fd4; }
+  .tag.green  { background: #dcf8ec; color: #007a54; }
+  .tag.purple { background: #ece0ff; color: #6a3db5; }
+  .tag.pink   { background: #ffe0ec; color: #b5224a; }
+  .tag.orange { background: #fff0e0; color: #b55a00; }
+
+  /* ===== COMPARISON TABLE ===== */
+  .compare-wrap {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+    animation: fadeInUp 0.5s ease;
+  }
+  .compare-header {
+    background: linear-gradient(135deg, var(--text), #2a3a60);
+    color: white;
+    padding: 14px 18px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .compare-table th {
+    background: #f0f6ff;
+    padding: 9px 10px;
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    text-align: center;
+  }
+  .compare-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:first-child { text-align: left; font-weight: 600; }
+  .check { color: var(--accent); font-size: 1.1rem; }
+  .cross { color: #e04040; font-size: 1.1rem; }
+  .tri  { color: var(--accent3); font-size: 1.1rem; }
+
+  /* ===== QUIZ ===== */
+  .quiz-section {
+    margin-bottom: 24px;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .quiz-header {
+    background: linear-gradient(135deg, #ff6b35, #f7b731);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .quiz-header h3 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+
+  .quiz-body {
+    background: white;
+    border-radius: 0 0 16px 16px;
+    box-shadow: var(--shadow);
+    padding: 16px 18px;
+  }
+
+  .quiz-item {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .quiz-q {
+    font-weight: 700;
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .quiz-q span {
+    display: inline-block;
+    background: linear-gradient(135deg,#ff6b35,#f7b731);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-right: 6px;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-size: 0.86rem;
+    background: #fafcff;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .quiz-option:hover:not(.disabled) { border-color: var(--primary-light); background: #f0f6ff; }
+  .quiz-option.correct  { border-color: var(--accent); background: #f0faf6; color: #007a54; }
+  .quiz-option.wrong    { border-color: #e04040; background: #fff0f0; color: #b00000; }
+  .quiz-option.disabled { cursor: default; }
+  .quiz-option.show-correct { border-color: var(--accent); background: #f0faf6; }
+
+  .option-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    color: var(--text-light);
+  }
+  .quiz-option.correct  .option-circle { border-color: var(--accent); color: var(--accent); }
+  .quiz-option.wrong    .option-circle { border-color: #e04040; color: #e04040; }
+  .quiz-option.show-correct .option-circle { border-color: var(--accent); color: var(--accent); }
+
+  .quiz-feedback {
+    display: none;
+    padding: 10px 13px;
+    border-radius: 10px;
+    font-size: 0.83rem;
+    line-height: 1.6;
+    margin-top: 6px;
+  }
+  .quiz-feedback.correct-fb  { background: #f0faf6; border: 1.5px solid var(--accent); display: block; }
+  .quiz-feedback.wrong-fb    { background: #fff0f0; border: 1.5px solid #e04040; display: block; }
+
+  .quiz-feedback strong { font-weight: 800; }
+
+  /* ===== SCORE BAR ===== */
+  .score-bar {
+    background: white;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 16px 18px;
+    text-align: center;
+    margin-bottom: 24px;
+    animation: fadeInUp 0.5s ease;
+    display: none;
+  }
+  .score-bar.visible { display: block; }
+  .score-num {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg,#ff6b35,#f7b731);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .score-label { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
+  .score-msg {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  /* ===== POINT BOX ===== */
+  .point-box {
+    background: linear-gradient(135deg, #fff7e0, #fff0d4);
+    border: 1.5px solid var(--accent3);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    font-size: 0.86rem;
+    line-height: 1.7;
+  }
+  .point-box h4 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #a06200;
+  }
+
+  /* ===== CAUTION BOX ===== */
+  .caution-box {
+    background: linear-gradient(135deg, #fff0f0, #ffe0e0);
+    border: 1.5px solid #f8b0b0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    font-size: 0.86rem;
+    line-height: 1.7;
+  }
+  .caution-box h4 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #b00000;
+  }
+
+  /* ===== ANCHOR NAV ===== */
+  .anchor-nav {
+    background: white;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.3s ease;
+  }
+  .anchor-nav h4 {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+  .anchor-nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .anchor-nav a {
+    display: block;
+    background: #f0f6ff;
+    border: 1.5px solid #c8d8f8;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.15s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .anchor-nav a:hover { background: var(--primary); color: white; }
+
+  /* ===== FOOTER ===== */
+  .footer-note {
+    background: linear-gradient(135deg, #e8f0ff, #f0f6ff);
+    border: 1.5px solid #c8d8f8;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    line-height: 1.7;
+  }
+  .footer-note strong { color: var(--primary); }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* section anchor */
+  .probe-anchor { scroll-margin-top: 80px; }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <a class="header-back" href="sonobo_lecture.html" title="目次に戻る">‹</a>
+  <div class="header-title">
+    <h1>📡 4. プローブの使い分け</h1>
+    <p>座学コース ／ 各プローブの適応と限界</p>
+  </div>
+  <span class="header-badge">POCUS基礎</span>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+  <!-- 進捗 -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>トピック 4 / 15</span>
+      <span>26%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:26%"></div>
+    </div>
+  </div>
+
+  <!-- ソノボ導入 -->
+  <div class="chat-wrap">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4StqRXhpZgAATU0AKgAAAAgABgESAAMAAAABAAEAAAEaAAUAAAABAAAAVgEbAAUAAAABAAAAXgEoAAMAAAABAAIAAAITAAMAAAABAAEAAIdpAAQAAAABAAAAZgAAAMAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAABACgAwAEAAAAAQAABACkBgADAAAAAQAAAAAAAAAAAAYBAwADAAAAAQAGAAABGgAFAAAAAQAAAQ4BGwAFAAAAAQAAARYBKAADAAAAAQACAAACAQAEAAAAAQAAAR4CAgAEAAAAAQAAKkIAAAAAAAAASAAAAAEAAABIAAAAAf/Y/9sAhAABAQEBAQECAQECAwICAgMEAwMDAwQFBAQEBAQFBgUFBQUFBQYGBgYGBgYGBwcHBwcHCAgICAgJCQkJCQkJCQkJAQEBAQICAgQCAgQJBgUGCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQn/3QAEAAr/wAARCACgAKADASIAAhEBAxEB/8QBogAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoLEAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+foBAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKCxEAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD+/CiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/2QAA" alt="ソノボ君" class="sonobo-avatar" style="object-fit:contain;">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      このトピックでは「<strong>どのプローブをいつ使うか？</strong>」を、一緒に考えながら学ぶよ！<br>
+      プローブ選びはエコーの基本中の基本。正しく選ばないと、見たいものが見えないんだ 🔍<br><br>
+      <strong>リニア・カーブド・フェーズド・経腔用</strong> の4種類を丁寧に解説するね。クイズも用意したから最後まで頑張ろう！
+    </div>
+  </div>
+
+  <!-- 目次 -->
+  <div class="anchor-nav">
+    <h4>📋 このページで学ぶこと</h4>
+    <ul>
+      <li><a href="#linear">① リニア型</a></li>
+      <li><a href="#curved">② カーブドアレイ</a></li>
+      <li><a href="#phased">③ フェーズドアレイ</a></li>
+      <li><a href="#transvaginal">④ 経腔用プローブ</a></li>
+      <li><a href="#compare">⑤ 比較まとめ</a></li>
+      <li><a href="#quiz">🧠 クイズ</a></li>
+    </ul>
+  </div>
+
+  <!-- ====================================================
+       セクションタイトル
+       ==================================================== -->
+  <div class="section-title">
+    <span class="icon">📡</span>
+    <div>
+      <h2>プローブの使い分け</h2>
+      <p>各プローブの適応（向く用途）と限界（苦手条件）を理解しよう</p>
+    </div>
+  </div>
+
+  <!-- ================================================
+       ① リニア型プローブ
+       ================================================ -->
+  <div class="probe-section probe-anchor" id="linear">
+    <div class="probe-header linear">
+      <div class="probe-icon">📏</div>
+      <div>
+        <h3>① リニア型プローブ</h3>
+        <div class="tagline">高周波・高分解能で表層と細部に強い</div>
+      </div>
+    </div>
+    <div class="probe-body">
+
+      <!-- 対話1 -->
+      <div class="dialog-block">
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            リニア型プローブって名前のとおり、振動子が<strong>一直線に並んでいる</strong>プローブだよ。周波数が高いから、表面に近い構造がとってもよく見えるんだ。
+          </div>
+        </div>
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">周波数が高いと、どうして鮮明に見えるの？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            周波数が高い＝波長が短い。波長が短いほど、細かい構造を区別できる（＝分解能が上がる）んだ！<br>
+            でもその分、体の深いところまで音が届きにくい。だから<strong>表在（浅い部分）専門</strong>と考えてね。
+          </div>
+        </div>
+      </div>
+
+      <!-- スペック -->
+      <div class="info-box">
+        <h4>📊 スペック（教科書ベース）</h4>
+        <table class="spec-table">
+          <tr><th>周波数帯</th><td>4.0〜10.0 MHz（高周波）</td></tr>
+          <tr><th>分解能</th><td>高い（浅部の細部まで見える）</td></tr>
+          <tr><th>観察深度</th><td>浅部向き（深部には不利）</td></tr>
+          <tr><th>主な用途</th><td>皮膚・軟部組織、血管、神経、運動器、ガイド下穿刺</td></tr>
+        </table>
+      </div>
+
+      <!-- 対話2 -->
+      <div class="dialog-block">
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">血管確保のときに使うのもリニアですか？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            そうだよ！血管確保・神経ブロック・穿刺など<strong>ガイド下の手技</strong>ではリニアが第一選択になりやすいよ。<br>
+            表在の血管や神経を高解像度でリアルタイムに見ながら針を進められるから、すごく重宝されるんだ。
+          </div>
+        </div>
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">画面が暗くなってきたらどうしたらいい？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            ゲインだけで粘るのはNG！深部が見えにくいのはそもそも<strong>リニアの限界</strong>。そういうときは最初から<strong>カーブドやフェーズドプローブへ切り替える</strong>のが安全で迅速だよ 🔄
+          </div>
+        </div>
+      </div>
+
+      <!-- ポイントBox -->
+      <div class="point-box">
+        <h4>💡 臨床でのポイント（POCUS視点）</h4>
+        ✅ <strong>血管確保・神経ブロック・穿刺</strong>では第一選択<br>
+        ✅ 皮膚軟部組織・運動器の観察に優れる<br>
+        ⚠️ 深部が暗いときは<strong>ゲインで粘らずプローブを替える</strong>判断を！
+      </div>
+
+      <!-- タグ -->
+      <div style="margin-top:10px">
+        <span class="tag blue">高周波4〜10MHz</span>
+        <span class="tag blue">高分解能</span>
+        <span class="tag blue">表在向き</span>
+        <span class="tag blue">血管・神経・穿刺</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       ② カーブドアレイ
+       ================================================ -->
+  <div class="probe-section probe-anchor" id="curved">
+    <div class="probe-header curved">
+      <div class="probe-icon">🌙</div>
+      <div>
+        <h3>② カーブドアレイ（コンベックス型）</h3>
+        <div class="tagline">低周波で深部まで見通す！腹部スクリーニングの主役</div>
+      </div>
+    </div>
+    <div class="probe-body">
+
+      <div class="dialog-block">
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            カーブドアレイ（コンベックス型）は振動子が<strong>曲線状に並んでいる</strong>プローブ。周波数が低いから音が体の奥まで届く。だから腹部臓器みたいな<strong>深い部分の観察</strong>が得意だよ。
+          </div>
+        </div>
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">周波数はどれくらいですか？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            だいたい <strong>1.8〜6.4 MHz</strong>。リニアの半分以下の周波数帯もあって、それだけ深部まで到達できるんだ。ただし波長が長くなるので、表面の細かい構造はリニアほど鮮明に見えないよ。
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box green">
+        <h4>📊 スペック</h4>
+        <table class="spec-table">
+          <tr><th>周波数帯</th><td>1.8〜6.4 MHz（低〜中周波）</td></tr>
+          <tr><th>分解能</th><td>リニアより低め（深部向き）</td></tr>
+          <tr><th>観察深度</th><td>深部まで到達可能</td></tr>
+          <tr><th>主な用途</th><td>腹部、胸部、心臓（補助的）</td></tr>
+        </table>
+      </div>
+
+      <div class="dialog-block">
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">FASTってよく聞くけど、カーブドを使うんですよね？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            そのとおり！<strong>FAST（外傷スクリーニング）など腹部の緊急評価</strong>は原則カーブドが入口になるよ。腹腔内出血の有無を素早く確認するのに最適なんだ。
+          </div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            あと、カーブドはフィールドが扇形に広がるから、<strong>1本でかなりの範囲をカバー</strong>できる "汎用"プローブとも言える。「深部→表層」の順に評価して、表層の精密観察が必要になったらリニアに替えるのが合理的だよ。
+          </div>
+        </div>
+      </div>
+
+      <div class="point-box">
+        <h4>💡 臨床でのポイント（POCUS視点）</h4>
+        ✅ <strong>FASTなど腹部スクリーニング</strong>の基本プローブ<br>
+        ✅ 「1本で幅広く観察したい」ときの汎用プローブ<br>
+        ⚠️ 小血管壁・神経束など<strong>表層の微細所見</strong>はリニアに譲る
+      </div>
+
+      <div style="margin-top:10px">
+        <span class="tag green">低周波1.8〜6.4MHz</span>
+        <span class="tag green">深部到達</span>
+        <span class="tag green">腹部スクリーニング</span>
+        <span class="tag green">FAST</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       ③ フェーズドアレイ
+       ================================================ -->
+  <div class="probe-section probe-anchor" id="phased">
+    <div class="probe-header phased">
+      <div class="probe-icon">🫀</div>
+      <div>
+        <h3>③ フェーズドアレイ（セクタ型）</h3>
+        <div class="tagline">小さい接触面で肋間から心臓を観察</div>
+      </div>
+    </div>
+    <div class="probe-body">
+
+      <div class="dialog-block">
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            フェーズドアレイは振動子が密集した<strong>小さい接触面</strong>が特徴。肋骨の間（肋間）という狭い"窓"から心臓を見るために生まれたプローブなんだ。
+          </div>
+        </div>
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">フェーズドって「位相」のことですか？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            正解！振動子それぞれに<strong>わずかな時間差（位相差）</strong>をつけて超音波を発射し、扇形（セクタ）のビームをつくる。接触面は小さいのに広い視野が得られる、なかなか賢い仕組みだよ ✨
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box purple">
+        <h4>📊 スペック</h4>
+        <table class="spec-table">
+          <tr><th>周波数帯</th><td>1.5〜6.0 MHz（低〜中周波）</td></tr>
+          <tr><th>分解能</th><td>低め（心臓の深部観察向き）</td></tr>
+          <tr><th>観察深度</th><td>深部向き</td></tr>
+          <tr><th>主な用途</th><td>心臓（心エコー）、循環器領域</td></tr>
+        </table>
+      </div>
+
+      <div class="dialog-block">
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">POCUSでいつフェーズドを使いますか？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            救急での<strong>心嚢液・心機能の評価（救急心エコー）</strong>が代表的だよ。肋骨窓が制限されても"入れる"のがフェーズドの強みなんだ。
+          </div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            ただし、近接表層（胸壁直下・皮膚病変）には不向き。用途をしっかり割り切って使うことが大事だよ。
+          </div>
+        </div>
+      </div>
+
+      <div class="point-box">
+        <h4>💡 臨床でのポイント（POCUS視点）</h4>
+        ✅ <strong>心嚢液・心機能</strong>など救急の心エコーに直結<br>
+        ✅ 肋間という狭い窓から広い視野を確保できる<br>
+        ⚠️ 近接表層（胸壁直下・皮膚病変）には<strong>不向き</strong>
+      </div>
+
+      <div style="margin-top:10px">
+        <span class="tag purple">低周波1.5〜6.0MHz</span>
+        <span class="tag purple">小接触面</span>
+        <span class="tag purple">心臓・心エコー</span>
+        <span class="tag purple">循環器</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       ④ 経腔用プローブ
+       ================================================ -->
+  <div class="probe-section probe-anchor" id="transvaginal">
+    <div class="probe-header transvaginal">
+      <div class="probe-icon">🔬</div>
+      <div>
+        <h3>④ 経腔用プローブ</h3>
+        <div class="tagline">体腔内から近距離で骨盤臓器を高解像度観察</div>
+      </div>
+    </div>
+    <div class="probe-body">
+
+      <div class="dialog-block">
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            経腔用プローブは、名前のとおり<strong>体腔内（膣・直腸・食道など）に挿入して使う</strong>特殊なプローブだよ。臓器にぐっと近づけるから、体表プローブでは見えにくい骨盤内臓器を高解像度で観察できる。
+          </div>
+        </div>
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">どういう場面で使うのですか？</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            主に<strong>骨盤臓器（子宮・卵巣・前立腺周囲など）の高解像度評価</strong>。経腟・経直腸・経食道など用途によって形状が違うよ。<br><br>
+            注意してほしいのは<strong>感染予防</strong>。粘膜接触が前提なので、再使用時には<strong>高水準消毒（HLD: High-Level Disinfection）</strong>と単回使用カバーが原則。体表プローブとは全然違うレベルの消毒が必要なんだ。
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box pink">
+        <h4>📊 概要</h4>
+        <table class="spec-table">
+          <tr><th>用途</th><td>経腟・経直腸・経食道などの内部観察</td></tr>
+          <tr><th>特長</th><td>臓器に近距離からアクセス → 高解像度</td></tr>
+          <tr><th>主な適応</th><td>骨盤内臓器評価、産婦人科・泌尿器科領域</td></tr>
+          <tr><th>感染管理</th><td><strong>高水準消毒（HLD）＋単回カバー</strong>が原則</td></tr>
+        </table>
+      </div>
+
+      <div class="dialog-block">
+        <div class="dialog-row user">
+          <div class="dialog-avatar user-av">🙋</div>
+          <div class="dialog-text">消毒のレベルが外部プローブと違うんですね。</div>
+        </div>
+        <div class="dialog-row sonobo">
+          <div class="dialog-avatar sonobo-av">🤖</div>
+          <div class="dialog-text">
+            そう！外部プローブは「低〜中水準消毒」で十分なことが多いけど、経腔用プローブは粘膜と直接接触するから<strong>高水準消毒（グルタラール・フタラールなど）</strong>が必要。施設のプロトコルに必ず従ってね。
+          </div>
+        </div>
+      </div>
+
+      <div class="caution-box">
+        <h4>⚠️ 感染管理の重要ポイント</h4>
+        経腟・経直腸などの内部プローブは<strong>粘膜接触が前提</strong>。<br>
+        再使用時には必ず<strong>高水準消毒（HLD）</strong>と<strong>単回カバー</strong>を使用すること。<br>
+        消毒レベルは外部プローブと異なるため、<strong>施設の感染対策プロトコルに従う</strong>こと。<br>
+        <span style="font-size:0.78rem;color:var(--text-light);margin-top:4px;display:block;">（参考：AIUM 2025改訂ガイドライン）</span>
+      </div>
+
+      <div class="point-box">
+        <h4>💡 臨床でのポイント（POCUS視点）</h4>
+        ✅ 体表プローブでは見えにくい<strong>骨盤内評価</strong>に強み<br>
+        ✅ 近距離観察により高解像度が得られる<br>
+        ⚠️ <strong>高水準消毒＋単回カバー</strong>が絶対条件
+      </div>
+
+      <div style="margin-top:10px">
+        <span class="tag pink">体腔内挿入型</span>
+        <span class="tag pink">骨盤内臓器</span>
+        <span class="tag pink">高解像度</span>
+        <span class="tag pink">HLD必須</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       比較まとめ
+       ================================================ -->
+  <div class="compare-wrap probe-anchor" id="compare">
+    <div class="compare-header">
+      📋 4プローブ 比較まとめ
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>プローブ</th>
+            <th>周波数</th>
+            <th>分解能</th>
+            <th>深達度</th>
+            <th>主な用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>📏 リニア型</td>
+            <td>高<br>4〜10 MHz</td>
+            <td><span class="check">◎</span></td>
+            <td><span class="cross">△<br>浅部のみ</span></td>
+            <td>血管・神経・穿刺・皮膚</td>
+          </tr>
+          <tr>
+            <td>🌙 カーブドアレイ</td>
+            <td>低〜中<br>1.8〜6.4 MHz</td>
+            <td><span class="tri">○</span></td>
+            <td><span class="check">◎<br>深部</span></td>
+            <td>腹部・FAST・汎用</td>
+          </tr>
+          <tr>
+            <td>🫀 フェーズドアレイ</td>
+            <td>低〜中<br>1.5〜6.0 MHz</td>
+            <td><span class="cross">△</span></td>
+            <td><span class="check">◎<br>深部</span></td>
+            <td>心臓・心エコー</td>
+          </tr>
+          <tr>
+            <td>🔬 経腔用</td>
+            <td>—</td>
+            <td><span class="check">◎<br>近距離</span></td>
+            <td>体腔内から</td>
+            <td>骨盤内・婦人科</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ソノボ締め話 -->
+  <div class="chat-wrap" style="margin-bottom:24px;">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4StqRXhpZgAATU0AKgAAAAgABgESAAMAAAABAAEAAAEaAAUAAAABAAAAVgEbAAUAAAABAAAAXgEoAAMAAAABAAIAAAITAAMAAAABAAEAAIdpAAQAAAABAAAAZgAAAMAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAABACgAwAEAAAAAQAABACkBgADAAAAAQAAAAAAAAAAAAYBAwADAAAAAQAGAAABGgAFAAAAAQAAAQ4BGwAFAAAAAQAAARYBKAADAAAAAQACAAACAQAEAAAAAQAAAR4CAgAEAAAAAQAAKkIAAAAAAAAASAAAAAEAAABIAAAAAf/Y/9sAhAABAQEBAQECAQECAwICAgMEAwMDAwQFBAQEBAQFBgUFBQUFBQYGBgYGBgYGBwcHBwcHCAgICAgJCQkJCQkJCQkJAQEBAQICAgQCAgQJBgUGCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQn/3QAEAAr/wAARCACgAKADASIAAhEBAxEB/8QBogAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoLEAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+foBAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKCxEAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD+/CiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/2QAA" alt="ソノボ君" class="sonobo-avatar" style="object-fit:contain;">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      4種類のプローブ、大事な流れは覚えた？🎯<br>
+      <strong>「何が見たいか → 表在か深部か → どのプローブか」</strong>の順で考えると選びやすくなるよ。<br><br>
+      じゃあ最後にクイズで確認してみよう！<br>
+      正解・不正解に関わらずちゃんと解説するから、安心して答えてね 😊
+    </div>
+  </div>
+
+  <!-- ================================================
+       クイズ
+       ================================================ -->
+  <div class="quiz-section probe-anchor" id="quiz">
+    <div class="quiz-header">
+      <span style="font-size:1.5rem">🧠</span>
+      <h3>理解度クイズ — プローブの使い分け</h3>
+    </div>
+    <div class="quiz-body" id="quizBody">
+
+      <!-- Q1 -->
+      <div class="quiz-item" data-qid="1" data-correct="B">
+        <div class="quiz-q"><span>1</span>血管確保のエコーガイド下穿刺で最もよく使われるプローブは？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(1,'A')">
+            <div class="option-circle">A</div>カーブドアレイ（コンベックス型）
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(1,'B')">
+            <div class="option-circle">B</div>リニア型プローブ
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(1,'C')">
+            <div class="option-circle">C</div>フェーズドアレイ（セクタ型）
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(1,'D')">
+            <div class="option-circle">D</div>経腟用プローブ
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb1"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item" data-qid="2" data-correct="C">
+        <div class="quiz-q"><span>2</span>FAST（外傷の腹部超音波スクリーニング）で最初に使うプローブはどれ？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(2,'A')">
+            <div class="option-circle">A</div>リニア型プローブ
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(2,'B')">
+            <div class="option-circle">B</div>フェーズドアレイ（セクタ型）
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(2,'C')">
+            <div class="option-circle">C</div>カーブドアレイ（コンベックス型）
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(2,'D')">
+            <div class="option-circle">D</div>経腟用プローブ
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb2"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item" data-qid="3" data-correct="A">
+        <div class="quiz-q"><span>3</span>フェーズドアレイ（セクタ型）プローブの特徴として正しいのはどれ？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(3,'A')">
+            <div class="option-circle">A</div>接触面が小さく、肋間からの心臓観察に適している
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(3,'B')">
+            <div class="option-circle">B</div>高周波数（10 MHz以上）で浅部の分解能が最も高い
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(3,'C')">
+            <div class="option-circle">C</div>体腔内に挿入して骨盤臓器を観察するプローブである
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(3,'D')">
+            <div class="option-circle">D</div>神経ブロックで最も頻繁に使用されるプローブである
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb3"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item" data-qid="4" data-correct="D">
+        <div class="quiz-q"><span>4</span>リニア型プローブの限界について正しい説明はどれ？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(4,'A')">
+            <div class="option-circle">A</div>心臓の近接表層が見えない
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(4,'B')">
+            <div class="option-circle">B</div>骨盤内臓器の観察に使えない（消毒上の問題）
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(4,'C')">
+            <div class="option-circle">C</div>腹腔内出血の評価ができない
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(4,'D')">
+            <div class="option-circle">D</div>高周波ゆえに深部は減衰しやすく、深部観察には不向き
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb4"></div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="quiz-item" data-qid="5" data-correct="B">
+        <div class="quiz-q"><span>5</span>経腔用プローブを使用する際、感染管理で必須のものはどれ？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(5,'A')">
+            <div class="option-circle">A</div>低水準消毒（アルコール清拭のみ）
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(5,'B')">
+            <div class="option-circle">B</div>高水準消毒（HLD）＋単回使用カバー
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(5,'C')">
+            <div class="option-circle">C</div>乾熱滅菌（オートクレーブ）
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(5,'D')">
+            <div class="option-circle">D</div>特別な消毒は不要（体表プローブと同じ扱い）
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb5"></div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="quiz-item" data-qid="6" data-correct="A">
+        <div class="quiz-q"><span>6</span>エコーで深部が暗くてよく見えない。最も適切な対処は？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(6,'A')">
+            <div class="option-circle">A</div>ゲインで粘らず、カーブドやフェーズドプローブに切り替える
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(6,'B')">
+            <div class="option-circle">B</div>ゲインを最大まで上げて観察を続ける
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(6,'C')">
+            <div class="option-circle">C</div>同じリニアプローブのまま深度設定だけ変える
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(6,'D')">
+            <div class="option-circle">D</div>経腟プローブに切り替えて再評価する
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb6"></div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="quiz-item" data-qid="7" data-correct="C">
+        <div class="quiz-q"><span>7</span>カーブドアレイ（コンベックス型）の主な観察対象として適切なのはどれ？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(7,'A')">
+            <div class="option-circle">A</div>皮下の神経束（表在神経ブロック）
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(7,'B')">
+            <div class="option-circle">B</div>心嚢液の評価
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(7,'C')">
+            <div class="option-circle">C</div>外傷時の腹腔内出血スクリーニング（FAST）
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(7,'D')">
+            <div class="option-circle">D</div>骨盤内卵巣の精密観察
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb7"></div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="quiz-item" data-qid="8" data-correct="D">
+        <div class="quiz-q"><span>8</span>次のうち、「周波数が高い」プローブの特徴として正しいものはどれ？</div>
+        <div class="quiz-options">
+          <div class="quiz-option" data-val="A" onclick="answerQuiz(8,'A')">
+            <div class="option-circle">A</div>深部まで音が届きやすい
+          </div>
+          <div class="quiz-option" data-val="B" onclick="answerQuiz(8,'B')">
+            <div class="option-circle">B</div>心臓観察に最も適している
+          </div>
+          <div class="quiz-option" data-val="C" onclick="answerQuiz(8,'C')">
+            <div class="option-circle">C</div>接触面が小さい
+          </div>
+          <div class="quiz-option" data-val="D" onclick="answerQuiz(8,'D')">
+            <div class="option-circle">D</div>波長が短く、空間分解能が高い（細かい構造が見える）
+          </div>
+        </div>
+        <div class="quiz-feedback" id="fb8"></div>
+      </div>
+
+    </div><!-- /quiz-body -->
+  </div><!-- /quiz-section -->
+
+  <!-- スコア -->
+  <div class="score-bar" id="scoreBar">
+    <div class="score-num" id="scoreNum">—</div>
+    <div class="score-label">正解 / 全8問</div>
+    <div class="score-msg" id="scoreMsg"></div>
+  </div>
+
+  <!-- フッター -->
+  <div class="footer-note">
+    <strong>📚 参考：</strong>本ページの内容は、POCUSの教科書的な「プローブ選択の考え方（pp.30–35相当）」に基づいています。経腔プローブの感染管理は <strong>AIUM 2025改訂ガイドライン</strong> に準拠。施設の感染対策プロトコルに必ず従ってください。
+  </div>
+
+</main>
+
+<script>
+// ===== クイズロジック =====
+const feedbacks = {
+  1: {
+    correct: '正解！✅ リニア型プローブは高周波・高分解能で、血管・神経など表在構造のガイド下穿刺に最適です。',
+    wrong:   '不正解 ❌ 正解は <strong>リニア型プローブ</strong> です。高周波で表在構造を鮮明に映し、針の位置確認にも優れています。'
+  },
+  2: {
+    correct: '正解！✅ FASTなどの腹部スクリーニングでは、カーブドアレイが標準です。深部まで届く低周波で広範囲を素早くスキャンできます。',
+    wrong:   '不正解 ❌ 正解は <strong>カーブドアレイ（コンベックス型）</strong> です。深部到達能力があり、腹腔内出血のスクリーニングに適しています。'
+  },
+  3: {
+    correct: '正解！✅ フェーズドアレイは接触面が小さく、肋間という狭い音響窓から扇形のビームで心臓を観察するために設計されています。',
+    wrong:   '不正解 ❌ 正解は <strong>A「接触面が小さく、肋間からの心臓観察に適している」</strong> です。フェーズドアレイは心臓観察が主な用途です。'
+  },
+  4: {
+    correct: '正解！✅ 高周波はそもそも体の深部まで届きにくい（減衰が大きい）という物理的な限界があります。深部が暗いときはプローブを替えましょう。',
+    wrong:   '不正解 ❌ 正解は <strong>D「深部は減衰しやすく不向き」</strong> です。リニア型は高周波ゆえに深部への到達が弱点です。'
+  },
+  5: {
+    correct: '正解！✅ 経腔用プローブは粘膜と接触するため、高水準消毒（HLD）と単回カバーが必須です。アルコール清拭だけでは不十分です。',
+    wrong:   '不正解 ❌ 正解は <strong>B「高水準消毒（HLD）＋単回使用カバー」</strong> です。体腔内プローブは体表プローブとは全く異なる感染管理が必要です。'
+  },
+  6: {
+    correct: '正解！✅ ゲインで粘るのは時間ロス。深部が暗ければ最初からカーブドやフェーズドに切り替える判断が重要です。',
+    wrong:   '不正解 ❌ 正解は <strong>A「カーブドやフェーズドに切り替える」</strong> です。リニアは深部観察に向いていないため、ゲイン調整で粘るのは非効率です。'
+  },
+  7: {
+    correct: '正解！✅ カーブドアレイは深部まで届く低周波が特徴で、FASTなど腹腔内出血のスクリーニングが代表的な用途です。',
+    wrong:   '不正解 ❌ 正解は <strong>C「腹腔内出血スクリーニング（FAST）」</strong> です。カーブドアレイは腹部・深部臓器の観察が得意です。'
+  },
+  8: {
+    correct: '正解！✅ 高周波＝波長が短い＝空間分解能が高い（細かい構造を区別しやすい）。ただし深部まで届きにくいというトレードオフがあります。',
+    wrong:   '不正解 ❌ 正解は <strong>D「波長が短く空間分解能が高い」</strong> です。高周波は浅部の分解能が高い反面、深部には届きにくいです。'
+  }
+};
+
+let answered = {};
+let score = 0;
+const totalQ = 8;
+
+function answerQuiz(qid, val) {
+  if (answered[qid]) return;
+  answered[qid] = val;
+
+  const item = document.querySelector(`[data-qid="${qid}"]`);
+  const correct = item.dataset.correct;
+  const opts = item.querySelectorAll('.quiz-option');
+  const fb = document.getElementById(`fb${qid}`);
+
+  opts.forEach(opt => {
+    opt.classList.add('disabled');
+    opt.onclick = null;
+    if (opt.dataset.val === correct) opt.classList.add('show-correct');
+  });
+
+  const chosen = item.querySelector(`[data-val="${val}"]`);
+  if (val === correct) {
+    chosen.classList.add('correct');
+    fb.className = 'quiz-feedback correct-fb';
+    fb.innerHTML = feedbacks[qid].correct;
+    score++;
+  } else {
+    chosen.classList.add('wrong');
+    fb.className = 'quiz-feedback wrong-fb';
+    fb.innerHTML = feedbacks[qid].wrong;
+  }
+
+  // 全問終了チェック
+  if (Object.keys(answered).length === totalQ) {
+    showScore();
+  }
+}
+
+function showScore() {
+  const bar = document.getElementById('scoreBar');
+  bar.classList.add('visible');
+  document.getElementById('scoreNum').textContent = `${score} / ${totalQ}`;
+  const pct = score / totalQ;
+  let msg = '';
+  if (pct === 1)       msg = '🎉 満点！完璧だよ！プローブ選択マスターだ！';
+  else if (pct >= 0.75) msg = '👏 よくできました！あと少しで完璧。復習して確認しよう！';
+  else if (pct >= 0.5)  msg = '😊 半分以上正解！間違えたところをもう一度読み直してみよう。';
+  else                  msg = '💪 もう一度このページを読んで、再チャレンジしよう！大丈夫！';
+  document.getElementById('scoreMsg').textContent = msg;
+  bar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+</body>
+</html>
