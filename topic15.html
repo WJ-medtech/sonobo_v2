@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15. 患者さんへの配慮と安全な検査 — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px; display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
+  }
+  .header-back {
+    background: rgba(255,255,255,0.18); border: none; border-radius: 50%;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: white; font-size: 1.2rem; transition: background 0.2s;
+    flex-shrink: 0; text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+  .header-logo { width: 44px; height: 44px; flex-shrink: 0; }
+  .header-title { color: white; font-family: 'M PLUS Rounded 1c', sans-serif; }
+  .header-title h1 { font-size: 1.1rem; font-weight: 800; line-height: 1.2; }
+  .header-title p { font-size: 0.72rem; opacity: 0.85; font-weight: 400; }
+
+  .main { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  .chat-bubble-wrap { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 24px; animation: fadeInUp 0.4s ease; }
+  .sonobo-avatar { width: 64px; height: 64px; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3)); animation: bounce 3s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .chat-bubble {
+    background: white; border-radius: 20px 20px 20px 4px; padding: 16px 20px;
+    box-shadow: var(--shadow); flex: 1; font-size: 0.93rem; line-height: 1.75;
+    border-left: 4px solid var(--primary); position: relative;
+  }
+  .chat-bubble::before {
+    content:''; position:absolute; left:-8px; bottom:16px;
+    border:8px solid transparent; border-right-color:white; border-left:none;
+  }
+  .chat-bubble .speaker { font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; color:var(--primary); font-size:0.8rem; margin-bottom:6px; display:flex; align-items:center; gap:4px; }
+
+  .chat-bubble-wrap.user-wrap { flex-direction: row-reverse; }
+  .user-bubble {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white; border-radius: 20px 20px 4px 20px; padding: 14px 18px;
+    box-shadow: var(--shadow); font-size: 0.93rem; line-height: 1.7; position: relative;
+    max-width: 85%;
+  }
+  .user-bubble::before {
+    content:''; position:absolute; right:-8px; bottom:16px;
+    border:8px solid transparent; border-left-color:var(--primary); border-right:none;
+  }
+  .user-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg,#ffd580,#ffaa00); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+
+  .section-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white; border-radius: 18px; padding: 20px 24px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 16px; animation: fadeInUp 0.4s ease;
+  }
+  .section-header .section-icon { font-size: 2.8rem; flex-shrink: 0; }
+  .section-header h2 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1.25rem; font-weight:800; line-height:1.3; }
+  .section-header p { font-size:0.78rem; opacity:0.85; margin-top:3px; }
+
+  .topic-card {
+    background: white; border-radius: 18px; padding: 20px 22px; margin-bottom: 20px;
+    box-shadow: var(--shadow); border-top: 4px solid var(--primary); animation: fadeInUp 0.4s ease;
+  }
+  .topic-card h3 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1.05rem; font-weight:800; color:var(--primary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .topic-card p { font-size:0.9rem; line-height:1.8; color:var(--text); margin-bottom:10px; }
+  .topic-card ul { padding-left:1.2em; margin-bottom:10px; }
+  .topic-card ul li { font-size:0.9rem; line-height:1.75; margin-bottom:4px; }
+
+  .point-box {
+    background: #f0faf6; border-left: 4px solid var(--accent); border-radius: 10px;
+    padding: 12px 16px; margin-top: 12px; font-size: 0.88rem; line-height: 1.75;
+  }
+  .point-box .point-title { font-weight:700; color:#00a87a; margin-bottom:6px; font-size:0.82rem; }
+
+  .warn-box {
+    background: #fff8f0; border-left: 4px solid var(--accent2); border-radius: 10px;
+    padding: 12px 16px; margin-top: 12px; font-size: 0.88rem; line-height: 1.75;
+  }
+  .warn-box .warn-title { font-weight:700; color:var(--accent2); margin-bottom:6px; font-size:0.82rem; }
+
+  /* 補足注記ボックス（PDFで内容が限定的な項目用） */
+  .supplement-box {
+    background: #f8f0ff; border-left: 4px solid #9b59b6; border-radius: 10px;
+    padding: 12px 16px; margin-top: 12px; font-size: 0.85rem; line-height: 1.75; color: #5a3d7a;
+  }
+  .supplement-box .supp-title { font-weight:700; color:#7d3c98; margin-bottom:6px; font-size:0.82rem; }
+
+  /* Quiz */
+  .quiz-block { background: #f4f8ff; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #d0e4ff; animation: fadeInUp 0.4s ease; }
+  .quiz-block .quiz-label { font-family:'M PLUS Rounded 1c',sans-serif; font-size:0.78rem; font-weight:800; color:var(--primary); background:#d8eaff; padding:3px 10px; border-radius:20px; display:inline-block; margin-bottom:10px; }
+  .quiz-block .quiz-q { font-size:0.93rem; font-weight:700; margin-bottom:14px; line-height:1.65; }
+  .quiz-choices { display:flex; flex-direction:column; gap:8px; }
+  .quiz-choice {
+    background: white; border: 2px solid #d0e0f8; border-radius: 12px;
+    padding: 11px 15px; font-size: 0.88rem; cursor: pointer; transition: all 0.18s;
+    text-align: left; font-family: 'Noto Sans JP', sans-serif; color: var(--text);
+  }
+  .quiz-choice:hover { border-color: var(--primary); background: #eef4ff; }
+  .quiz-choice.correct { background: #e6fbf4; border-color: var(--accent); color: #007a58; font-weight: 700; }
+  .quiz-choice.wrong { background: #fff0ed; border-color: #ff6b35; color: #cc3300; }
+  .quiz-choice.show-correct { background: #e6fbf4; border-color: var(--accent); }
+  .quiz-feedback { margin-top: 12px; font-size: 0.87rem; line-height: 1.7; padding: 10px 14px; border-radius: 10px; display: none; }
+  .quiz-feedback.correct-fb { background: #e6fbf4; color: #007a58; display:block; }
+  .quiz-feedback.wrong-fb { background: #fff0ed; color: #cc3300; display:block; }
+
+  .divider { height: 2px; background: linear-gradient(90deg,var(--primary-light),transparent); border-radius:2px; margin:28px 0; }
+
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+  .tag { display:inline-block; background:#eef4ff; color:var(--primary); border-radius:6px; padding:2px 8px; font-size:0.78rem; font-weight:700; margin-right:4px; margin-bottom:4px; }
+
+  .summary-card { background:linear-gradient(135deg,#0d4fa0,#1a6fd4); color:white; border-radius:18px; padding:22px 24px; margin-bottom:24px; }
+  .summary-card h3 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1rem; font-weight:800; margin-bottom:12px; }
+  .summary-card ul { padding-left:1.2em; }
+  .summary-card ul li { font-size:0.88rem; line-height:1.8; opacity:0.95; }
+
+  /* 比較テーブル */
+  .compare-table { width:100%; border-collapse:collapse; margin-top:12px; font-size:0.85rem; }
+  .compare-table th { background:var(--primary); color:white; padding:8px 10px; text-align:left; font-family:'M PLUS Rounded 1c',sans-serif; font-size:0.82rem; }
+  .compare-table th:first-child { border-radius:8px 0 0 0; }
+  .compare-table th:last-child { border-radius:0 8px 0 0; }
+  .compare-table td { padding:8px 10px; border-bottom:1px solid #dde8f8; line-height:1.6; vertical-align:top; }
+  .compare-table tr:nth-child(even) td { background:#f4f8ff; }
+  .compare-table tr:last-child td { border-bottom:none; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="sonobo_lecture.html" class="header-back">←</a>
+  <svg class="header-logo" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="40" r="38" fill="white" fill-opacity="0.15"/>
+    <ellipse cx="40" cy="44" rx="22" ry="18" fill="white" fill-opacity="0.9"/>
+    <circle cx="33" cy="38" r="5" fill="#1a6fd4"/>
+    <circle cx="47" cy="38" r="5" fill="#1a6fd4"/>
+    <circle cx="34.5" cy="37" r="1.5" fill="white"/>
+    <circle cx="48.5" cy="37" r="1.5" fill="white"/>
+    <path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M20 30 Q18 20 26 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M60 30 Q62 20 54 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  </svg>
+  <div class="header-title">
+    <h1>15. 患者さんへの配慮と安全な検査</h1>
+    <p>座学コース — ソノボ君と学ぶPOCUS基礎</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- イントロ -->
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      トピック11〜14で機器操作・画像評価の技術的な話をたくさんしてきたね！<br>
+      でも、POCUSで一番大切なことを忘れていないかな？<br><br>
+      そう、<strong>検査を受けるのは「患者さん」</strong>だってこと。 技術だけじゃなく、<strong>安全への配慮・患者さんへの説明・記録の義務</strong>まで含めてはじめて「正しいPOCUS」になるよ📋
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-icon">🤝</span>
+    <div>
+      <h2>患者さんへの配慮と安全な検査 7項目</h2>
+      <p>安全性の説明 / インフォームドコンセント / プライバシー / 快適さ / 体位 / 記録 / ALARA</p>
+    </div>
+  </div>
+
+  <!-- ===== 1. 超音波使用に関する専門的説明 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">超音波って「安全」って聞くけど、本当に何も心配ないんですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      いい質問！ 「診断用超音波は現在のところ安全」というのが正しい表現で、「完全に無害」とは言えないんだ。 ちゃんと使い方のルールがあるよ📡
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>📡 ① 超音波使用に関する専門的説明</h3>
+    <p><strong>患者さんに正直に説明する：</strong>「超音波検査は放射線を使いません。現在の診断目的の使用では安全性が確認されていますが、不必要に長時間・高出力で照射するものでもありません」というのが誠実な説明。</p>
+    <p>超音波には、組織への熱的作用（温め）と機械的作用（キャビテーション）の2種類の生体作用がある。診断用装置では通常問題のないレベルに抑えられているが、使い方しだいで影響が変わる。</p>
+    <p>装置画面には安全指標として以下が表示されている：</p>
+    <table class="compare-table">
+      <tr>
+        <th>指標</th>
+        <th>略称</th>
+        <th>意味</th>
+        <th>注意すべき場面</th>
+      </tr>
+      <tr>
+        <td><strong>機械的指数</strong></td>
+        <td>MI（Mechanical Index）</td>
+        <td>機械的作用（キャビテーション）の指標。高いほどリスク増</td>
+        <td>胎児・眼球エコー。MI &lt; 0.3推奨（産科）</td>
+      </tr>
+      <tr>
+        <td><strong>熱的指数</strong></td>
+        <td>TI（Thermal Index）</td>
+        <td>組織加熱の指標。高いほど温度上昇リスク増</td>
+        <td>ドプラ使用時・長時間照射。TI &lt; 1.0推奨</td>
+      </tr>
+    </table>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ 「安全だから何分でもOK」は誤り</div>
+      超音波は「比較的安全」であって「完全無害」ではない。特に<strong>胎児・眼球・精巣など感受性の高い組織</strong>では慎重に。「必要最小限の出力・照射時間」がプロの使い方。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・患者さんに「超音波は放射線ではありません」と伝えることで安心感を与えられる。<br>
+      ・ただし「絶対安全」とは言わない。「適切に使えば安全な検査です」が正確な表現。<br>
+      ・MI・TI は診断目的では通常1未満を目安とするが、装置・施設設定に従うこと。
+    </div>
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-1</span>
+    <div class="quiz-q">超音波の安全性について正しい説明はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-1')">① 診断用超音波は完全に無害であるため、何時間照射しても問題ない</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-1')">② 診断用超音波は現在のところ安全とされているが、不必要な照射は避けるべきである</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-1')">③ 超音波は放射線の一種であるため、放射線被曝と同様に管理する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-1')">④ ドプラ検査はBモードより安全なため、長時間の使用が推奨される</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-1"></div>
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-2</span>
+    <div class="quiz-q">装置画面に表示されるMI（機械的指数）とTI（熱的指数）について正しいのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-2')">① MIは熱的作用、TIは機械的作用の指標である</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-2')">② どちらも10未満であれば問題ない</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-2')">③ MIは機械的作用（キャビテーション）の指標で、産科ではMI &lt; 0.3が推奨される</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-2')">④ TIが高いほど画像の解像度が上がる</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-2"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 2. インフォームドコンセント ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">POCUSを行うとき、毎回患者さんに説明して同意を取らないといけないんですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      基本的にはYES！ 体に触れる検査である以上、患者さんへの説明と同意は倫理的・法的な義務だよ。でも、どれくらい詳しく説明するかは検査の侵襲性によって変わるんだ🤝
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🤝 ② インフォームドコンセントの取得</h3>
+    <p><strong>POCUSも「医療行為」</strong>である以上、患者さんへの説明と同意（インフォームドコンセント）は必須。体外から行う経胸壁エコーであっても、「何をするか」「なぜするか」を伝える義務がある。</p>
+    <p><strong>侵襲度別の説明レベルの目安：</strong></p>
+    <table class="compare-table">
+      <tr>
+        <th>検査種別</th>
+        <th>例</th>
+        <th>同意の形式</th>
+      </tr>
+      <tr>
+        <td>低侵襲（体表エコー）</td>
+        <td>腹部エコー、FASTなど</td>
+        <td>口頭説明＋口頭同意で通常は可</td>
+      </tr>
+      <tr>
+        <td>中等度侵襲（体腔内エコー）</td>
+        <td>経食道エコー（TEE）、経直腸エコーなど</td>
+        <td>書面による同意が望ましい</td>
+      </tr>
+      <tr>
+        <td>手技（エコーガイド下穿刺など）</td>
+        <td>胸腔穿刺、中心静脈挿入など</td>
+        <td>書面同意が必要（施設規程に従う）</td>
+      </tr>
+    </table>
+    <p style="margin-top:10px;">患者さんには必ず<strong>「断る権利がある」ことを伝える</strong>こと。「検査を受けてもらえますか？」という表現で確認するのが適切。</p>
+    <div class="supplement-box">
+      <div class="supp-title">📘 補足注記（PDFでの記載が限定的な内容）</div>
+      インフォームドコンセントの詳細手順はPOCUS基礎分析レポートには含まれていない。上記は日本救急医学会・日本超音波医学会のガイドライン等の一般的医療倫理に基づく補足情報。施設によってプロトコルが異なるため、所属施設の規程を優先すること。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・FAST（外傷）など緊急時でも「エコーで確認します」の一言は伝える。<br>
+      ・患者が意識障害などで同意を得られない場合は代理意思決定者（家族など）に確認する（施設規程に従う）。<br>
+      ・同意を得た事実と内容を診療記録に残すことが重要。
+    </div>
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-3</span>
+    <div class="quiz-q">体外から行うFAST（腹部エコー）を施行する際のインフォームドコンセントとして最も適切なのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-3')">① 低侵襲な検査なので説明は不要である</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-3')">② 口頭で「エコーで確認します」と伝え、患者の同意を得る</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-3')">③ 必ず書面による同意書を取得してから施行する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-3')">④ 緊急時はいかなる場合も説明なしで施行してよい</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-3"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 3. プライバシーの尊重 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">エコーの画像って、患者さんの情報が入ってますよね。どう管理すればいいですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      エコー画像には患者さんの体の情報が含まれていて、これは立派な個人情報・医療情報だよ。 「さっと撮った写真」感覚で管理しちゃダメ！🔒
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🔒 ③ 患者のプライバシーの尊重</h3>
+    <p><strong>検査中の配慮：</strong>エコーは必ず体を露出させる検査。必要最小限の範囲だけ露出させ、不要な部位は覆う（ドレープ・タオルなど）。カーテン・スクリーンを活用し、周囲からの視線を遮る。</p>
+    <p><strong>画像・データの管理：</strong></p>
+    <ul>
+      <li>POCUSで取得した画像・動画は医療情報であり、電子カルテや施設のPACS（画像管理システム）で適切に保管する</li>
+      <li>個人の私用スマートフォン・タブレットで患者情報が映った画像を撮影・保存することは原則禁止（施設規程に従う）</li>
+      <li>症例報告・教育目的で使用する場合は患者の同意または匿名化が必要</li>
+      <li>画像を共有・転送する際は暗号化・セキュリティ対策を行う</li>
+    </ul>
+    <div class="supplement-box">
+      <div class="supp-title">📘 補足注記（PDFでの記載が限定的な内容）</div>
+      プライバシー保護の詳細な規定はPOCUS基礎分析レポートには記載されていない。上記は個人情報保護法・医療情報ガイドライン（厚生労働省）に基づく一般原則。施設の情報管理規程に必ず従うこと。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・「必要最小限の露出で、すばやく検査、すぐ覆う」を習慣に。<br>
+      ・検査前に「お腹（胸）を少し出させてください」と一言添えるだけで患者さんの安心感が違う。<br>
+      ・画像データは必ずシステムに保存し、後から参照できる状態にしておく。
+    </div>
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-4</span>
+    <div class="quiz-q">POCUSで撮影した画像の管理として正しいのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-4')">① 教育目的なら患者の同意なしにSNSで共有してよい</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-4')">② 画像は消去しても診療録に記録があれば問題ない</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-4')">③ 施設のPACSや電子カルテで適切に保管し、私用端末への保存は原則禁止</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-4')">④ ポータブル機器で撮影した画像はサイズが小さいので管理不要</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-4"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 4. 快適さへの配慮 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">エコーゲルって冷たいって聞くけど、それも気を付けた方がいいですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      その気遣いが大事！ ゲルが冷たいと患者さんが驚いて筋肉が緊張して、かえって画像が取りづらくなることもあるよ。 快適さの配慮は「患者思い」というだけでなく「検査の質」にも直結するんだ😊
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>😊 ④ 患者の快適さへの配慮</h3>
+    <p><strong>ゲルの温度：</strong>エコーゲルは室温だと冷たく感じる場合がある。ゲルウォーマーを使用するか、「少し冷たいです」と事前に伝えることで不意打ちを防ぐ。特に急性期・意識のある患者では重要。</p>
+    <p><strong>プローブの圧迫：</strong>プローブを強く押し当てると痛みや不快感が生じる。最低限の圧迫で最良の画像が取れるのがスキルの証明。腸管ガスがある場合は「少し押します」と告げてから適度に圧迫する。</p>
+    <p><strong>体位と苦痛：</strong>仰臥位が取れない患者、呼吸困難で座位を保ちたい患者など、強制的な体位をとらせないことが大切。可能な範囲でアプローチを工夫する。</p>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>「ゲル冷たいです、少し当てますね」</strong>の一言を習慣に。<br>
+      ・圧迫が必要な場合は「少し押しますがいたかったら言ってください」と伝える。<br>
+      ・検査中も患者の表情・反応を観察し続ける。画像だけ見ていてはいけない。
+    </div>
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-5</span>
+    <div class="quiz-q">エコーゲルを使用する際の患者への配慮として最も適切なのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-5')">① ゲルの温度は画像に影響しないので気にしなくてよい</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-5')">② ゲルウォーマーを使用するか「少し冷たいです」と事前に一言伝える</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-5')">③ 冷たいゲルは筋緊張を促すため意図的に使用する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-5')">④ 快適さより画像の質が最優先のため配慮は不要</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-5"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 5. 患者の適切な体位 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">体位って大事なんですか？ プローブの当て方を工夫すればいいんじゃないですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      体位が変わると「音響窓（超音波が入りやすい場所）」が変わるんだ。 技術よりまず体位！ 「良い体位＋ノブ操作最小限」が鉄則だよ🛏️
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🛏️ ⑤ 患者の適切な体位</h3>
+    <p><strong>体位の目的：</strong>体位を最適化することで<strong>音響窓（超音波が体内へ入りやすい経路）</strong>が確保できる。体位変換なしに装置のノブだけで対応しようとするのは誤り。</p>
+    <p><strong>臓器別の体位の目安：</strong></p>
+    <table class="compare-table">
+      <tr>
+        <th>評価対象</th>
+        <th>推奨体位</th>
+        <th>理由</th>
+      </tr>
+      <tr>
+        <td>心臓（傍胸骨・心尖部断面）</td>
+        <td>左側臥位（Left lateral decubitus）</td>
+        <td>心臓が胸壁に近づき窓が広がる</td>
+      </tr>
+      <tr>
+        <td>胆嚢・肝臓</td>
+        <td>仰臥位 or 左側臥位</td>
+        <td>右肋間からのアプローチが開く</td>
+      </tr>
+      <tr>
+        <td>肺・胸水</td>
+        <td>座位 or 仰臥位</td>
+        <td>重力で液体が背側に貯留、座位だと後胸部から見やすい</td>
+      </tr>
+      <tr>
+        <td>腎臓・下肢静脈</td>
+        <td>仰臥位 / 膝軽度屈曲</td>
+        <td>筋緊張を解除し圧迫評価しやすくなる</td>
+      </tr>
+    </table>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ 「ノブより先に体位変換」を習慣に</div>
+      装置のゲイン・深度・フォーカスを触る前に、まず「この体位で音響窓が取れているか？」を確認。<strong>体位変換で解決できることが多い</strong>。ただし患者の状態（呼吸困難・疼痛など）によっては無理に変換せず、取れる体位の中で工夫する。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・体位変換の前に「横向きになれますか？」などと患者に確認する。<br>
+      ・ICUなど動かせない患者では、プローブアプローチを工夫する（経腸・傍脊柱など）。<br>
+      ・体位変換は患者にとって負担になることもある。「大丈夫ですか？」の確認を忘れずに。
+    </div>
+  </div>
+
+  <!-- Quiz 6 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-6</span>
+    <div class="quiz-q">心尖部四腔断面（心エコー）を取得する際、最も画像が取りやすい体位はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-6')">① 腹臥位（うつぶせ）</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-6')">② 右側臥位</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-6')">③ 左側臥位（Left lateral decubitus）</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-6')">④ 座位（前傾姿勢）</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-6"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 6. 所見の記録 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">エコーをやったあと、記録ってどこまで残さないといけないんですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      記録は「義務」だよ。「見た・やった」だけでは医療行為として成立しない。<strong>「記録されていない医療は行われていないのと同じ」</strong>というのが法的な考え方なんだ📋
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>📋 ⑥ 所見の記録完了</h3>
+    <p><strong>記録の必須要素：</strong>POCUSを施行した場合は以下を記録に残す。</p>
+    <ul>
+      <li><strong>断面名・観察部位</strong>：「心尖部四腔断面」「肝腎境界（Morison窩）」など</li>
+      <li><strong>プローブマーカーの向き</strong>：画面上のマーカー方向を記録・確認（誤読防止）</li>
+      <li><strong>静止画（フリーズ画像）</strong>：代表的な断面の保存</li>
+      <li><strong>動画（クリップ）</strong>：動的評価（心収縮・IVC変動など）が必要な場合</li>
+      <li><strong>所見・判断の記録</strong>：「〇〇なし」「〇〇を認めた」など診療録への記載</li>
+    </ul>
+    <p><strong>法的な観点：</strong>診療録への記載は医師法・医療法で義務付けられており、POCUSによる所見も含まれる。画像のみ保存して診療録に記載がない場合も不十分とされる。</p>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ 「見たけど保存しなかった」は後で困る</div>
+      急いでいる場面でも、最低1枚は静止画を保存すること。後日「本当にエコーをしたのか」「どんな画像だったか」を証明できるのは記録だけ。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・保存する断面には断面名と撮影日時が自動付与されるが、<strong>断面名ラベルは正しく入力</strong>する習慣を。<br>
+      ・動的評価（IVC、心収縮）は動画でなければ伝わらない。積極的に動画クリップを保存する。<br>
+      ・FAST陰性（液体貯留なし）の場合も「FASTを施行、liquid free」など簡潔に記録する。
+    </div>
+  </div>
+
+  <!-- Quiz 7 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-7</span>
+    <div class="quiz-q">POCUSで「胸水あり」と判断したが、急いでいたため画像を保存せずに退室した。この対応として問題があるのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-7')">① 胸水の評価に静止画は必要ないため問題ない</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-7')">② 診療録に「胸水あり」と書けば画像は不要である</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-7')">③ 画像記録がないと所見の根拠が残らず、診療・法的な観点から不十分である</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-7')">④ 次回の検査で確認できるので特に問題はない</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-7"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 7. ALARA原則 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">「ALARA」って放射線の話ですよね？ エコーにも使うんですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      実はエコーにも使う考え方なんだ。<br>
+      <strong>As Low As Reasonably Achievable（合理的に達成可能な限り低く）</strong>——超音波も「必要最小限の出力・時間で目的を達成する」ことが大原則だよ📡
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>📡 ⑦ ALARA原則（As Low As Reasonably Achievable）</h3>
+    <p>ALARA原則はもともと放射線防護の考え方だが、超音波でも同様に適用される。<strong>「診断に必要な情報が得られる最小限の音響出力・照射時間で検査する」</strong>ことが求められる。</p>
+    <p><strong>超音波のALARA実践ポイント：</strong></p>
+    <ul>
+      <li><strong>出力（アコースティックパワー）を下げる</strong>：必要以上に高出力にしない。まず低出力で試み、画像が不十分なら上げる</li>
+      <li><strong>照射時間を最小限にする</strong>：目的の画像が取れたらすぐにフリーズ。漠然と当て続けない</li>
+      <li><strong>ドプラモードは慎重に</strong>：カラードプラ・スペクトラルドプラはBモードよりTI（熱的指数）が上がりやすい。胎児・眼球などでは特に注意</li>
+      <li><strong>フォーカスを1点に絞る</strong>：複数フォーカスはフレームレートが下がり照射量が増える</li>
+    </ul>
+    <p>世界超音波医学連合（WFUMB）は「超音波も慎重に使用すべき」という声明を発表しており、特に胎児・小児・眼球などの感受性の高い組織への長時間・高出力照射は避けるよう推奨している。</p>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ 特にドプラモードは注意</div>
+      カラードプラ・スペクトラルドプラ（PW/CW）はパルス繰り返しが多く、TI（熱的指数）が上昇しやすい。産科・眼科領域では<strong>必要最小限の使用</strong>を徹底する。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・「出力を上げて画像をよくする」より「技術と体位で画像をよくする」がプロの姿勢。<br>
+      ・MI・TI は常に確認し、目標（MI &lt; 0.3、TI &lt; 1.0）を意識して使用する。<br>
+      ・「もう十分見えた」と思ったらすぐフリーズ。当て続けることに医学的根拠はない。
+    </div>
+  </div>
+
+  <!-- Quiz 8 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-8</span>
+    <div class="quiz-q">ALARA原則を超音波に適用したとき、正しい実践はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-8')">① 画像をよくするために常に最大出力で使用する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-8')">② カラードプラはBモードより安全なので積極的に長時間使用してよい</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-8')">③ 診断に必要な情報が得られたらすぐフリーズし、必要最小限の出力・時間で使用する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-8')">④ ALARA原則は放射線にのみ適用されるため、超音波では関係ない</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-8"></div>
+  </div>
+
+  <!-- Quiz 9（総合） -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-9（総合）</span>
+    <div class="quiz-q">ドプラモード使用時にBモードより注意が必要な安全指標はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-9')">① MI（機械的指数）のみ上昇する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-9')">② TI（熱的指数）が上昇しやすい</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-9')">③ どちらも変化しない</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-9')">④ フレームレートの指数が上昇する</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-9"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- まとめ -->
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      お疲れ様！ トピック15のまとめだよ。技術的なスキルと、患者さんへの配慮・安全管理が両輪になってはじめて<strong>「良いPOCUS」</strong>が完成するんだ📋🤝
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3>📋 トピック15 まとめ</h3>
+    <ul>
+      <li>📡 <strong>安全性の説明</strong>：「現在のところ安全」であって「絶対無害」ではない。MI・TIを意識して使用する</li>
+      <li>🤝 <strong>インフォームドコンセント</strong>：侵襲度に応じた説明と同意を取得。緊急時も一言添える</li>
+      <li>🔒 <strong>プライバシー保護</strong>：露出最小限・施設システムで画像管理・私用端末への保存は原則禁止</li>
+      <li>😊 <strong>快適さへの配慮</strong>：ゲルの温度・圧迫量・体位の負担を患者目線で意識する</li>
+      <li>🛏️ <strong>適切な体位</strong>：「ノブより先に体位変換」で音響窓を確保。患者の状態に配慮する</li>
+      <li>📋 <strong>記録の完了</strong>：断面名・マーカー・静止画・動画・診療録記載がセット。「記録なし＝行為なし」</li>
+      <li>⬇️ <strong>ALARA原則</strong>：必要最小限の出力・照射時間で。ドプラはTIが上がりやすいため特に慎重に</li>
+    </ul>
+  </div>
+
+  <!-- 最終Quiz -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 15-10（総合）</span>
+    <div class="quiz-q">POCUSを安全・適切に施行するうえで誤っているのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-10')">① 検査前に「エコーで確認します」と患者に一言伝える</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-10')">② 目的の画像が得られたらすぐフリーズし照射時間を最小限にする</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','15-10')">③ 超音波は完全に無害なので出力・時間に制限なく使用してよい</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','15-10')">④ 撮影した画像は施設のPACSで管理し、診療録にも所見を記載する</button>
+    </div>
+    <div class="quiz-feedback" id="fb-15-10"></div>
+  </div>
+
+</main>
+
+<script>
+const feedbacks = {
+  '15-1': {
+    correct: '✅ 正解！ 診断用超音波は現在のところ安全とされていますが、ALARA原則に基づき不必要な照射は避けることが大切です。「完全無害」とは言わないことが重要です。',
+    wrong: '❌ 不正解。超音波は放射線ではありませんが、熱的・機械的作用がゼロではありません。「現在のところ安全」かつ「必要最小限の使用が原則」が正しい理解です。'
+  },
+  '15-2': {
+    correct: '✅ 正解！ MIは機械的作用（キャビテーション）の指標です。産科領域ではMI < 0.3が推奨されており、胎児への安全に配慮した使用が求められます。',
+    wrong: '❌ 不正解。MIは機械的作用（キャビテーション）、TIは熱的作用の指標です。産科ではMI < 0.3、一般診断目的ではTI < 1.0が目安とされています。'
+  },
+  '15-3': {
+    correct: '✅ 正解！ 体外から行うFASTも医療行為です。「エコーで確認します」と口頭で伝え同意を得ることが基本です。緊急時でもこの一言を忘れずに。',
+    wrong: '❌ 不正解。低侵襲でも説明と同意は必要です。ただし体外エコーであれば書面は必須ではなく、口頭説明と口頭同意が基本です。緊急時は簡潔に伝えるだけでOK。'
+  },
+  '15-4': {
+    correct: '✅ 正解！ POCUSで取得した画像は医療情報です。施設のPACS・電子カルテで管理し、私用端末への保存は原則禁止です。教育目的でも患者の同意か匿名化が必要です。',
+    wrong: '❌ 不正解。エコー画像は患者の個人情報・医療情報です。施設のシステムで適切に保管し、私用端末への保存は原則禁止です。'
+  },
+  '15-5': {
+    correct: '✅ 正解！ ゲルが冷たいと患者さんが驚き、筋肉が緊張して画像が悪化することがあります。「少し冷たいです」の一言で不意打ちを防ぎましょう。',
+    wrong: '❌ 不正解。ゲルの冷たさは患者の不快感だけでなく、筋緊張による画像の悪化も招きます。ゲルウォーマーの使用または事前の一言が大切です。'
+  },
+  '15-6': {
+    correct: '✅ 正解！ 心尖部断面では左側臥位をとることで心臓が胸壁に近づき、肋骨や肺の干渉が減って音響窓が広がります。',
+    wrong: '❌ 不正解。心尖部断面では左側臥位（Left lateral decubitus）が最も音響窓が広がります。心臓が胸壁に引き寄せられ、見えやすくなります。'
+  },
+  '15-7': {
+    correct: '✅ 正解！ 画像記録がないと所見の根拠が残らず、医療・法的な観点から不十分です。「記録されていない医療は行われていないのと同じ」という考え方が基本です。',
+    wrong: '❌ 不正解。POCUSで所見を認めた場合は、画像を保存し診療録にも記載することが必要です。急いでいても最低1枚の静止画保存を習慣にしましょう。'
+  },
+  '15-8': {
+    correct: '✅ 正解！ ALARA原則の実践は「目的を達成したらすぐ終わる・出力を最小限にする」ことです。技術と体位で画像を確保し、出力に頼らないことがプロの姿勢です。',
+    wrong: '❌ 不正解。ALARA（As Low As Reasonably Achievable）は超音波にも適用される原則です。必要最小限の出力・照射時間で検査することが求められます。'
+  },
+  '15-9': {
+    correct: '✅ 正解！ カラードプラ・スペクトラルドプラはパルス繰り返しが多く、TI（熱的指数）が上昇しやすいです。胎児・眼球など感受性の高い部位では特に慎重な使用が必要です。',
+    wrong: '❌ 不正解。ドプラモード（カラードプラ・スペクトラルドプラ）はBモードと比べてTI（熱的指数）が上昇しやすいです。産科・眼科では特に注意が必要です。'
+  },
+  '15-10': {
+    correct: '✅ 正解！ 超音波は「現在のところ安全」であって「完全無害・制限なし」ではありません。ALARA原則に従い、必要最小限の出力・照射時間で使用することが基本です。',
+    wrong: '❌ 不正解。「超音波は完全無害で制限なし」は誤りです。ALARA原則に基づき、必要最小限の出力・照射時間で使用することが正しい姿勢です。'
+  },
+};
+
+function answerQuiz(btn, result, id) {
+  const block = btn.closest('.quiz-block');
+  const choices = block.querySelectorAll('.quiz-choice');
+  const fb = document.getElementById('fb-' + id);
+  if (block.dataset.answered) return;
+  block.dataset.answered = '1';
+  choices.forEach(c => { c.disabled = true; });
+  if (result === 'correct') {
+    btn.classList.add('correct');
+    fb.className = 'quiz-feedback correct-fb';
+    fb.textContent = '✅ ' + feedbacks[id].correct;
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'quiz-feedback wrong-fb';
+    fb.textContent = '❌ ' + feedbacks[id].wrong;
+    choices.forEach(c => { if (c.onclick.toString().includes("'correct'")) c.classList.add('show-correct'); });
+  }
+}
+</script>
+</body>
+</html>
