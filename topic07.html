@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7. 画像の見方の基本 — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+    --correct: #00c8a0;
+    --wrong: #ff4d6d;
+    --quiz-bg: #f8faff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-back {
+    background: rgba(255,255,255,0.18);
+    border: none;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+
+  .header-logo { width: 44px; height: 44px; flex-shrink: 0; }
+
+  .header-title { color: white; font-family: 'M PLUS Rounded 1c', sans-serif; }
+  .header-title h1 { font-size: 1.05rem; font-weight: 800; line-height: 1.2; }
+  .header-title p { font-size: 0.72rem; opacity: 0.85; font-weight: 400; }
+
+  /* ===== MAIN ===== */
+  .main { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar-wrap {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-bar-label {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .progress-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #e0e8f8;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+  .progress-bar-count {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--primary);
+    white-space: nowrap;
+  }
+
+  /* ===== SONOBO CHAT ===== */
+  .chat-bubble-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .sonobo-avatar {
+    width: 60px; height: 60px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-6px); }
+  }
+
+  .chat-bubble {
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    font-size: 0.93rem;
+    line-height: 1.8;
+    border-left: 4px solid var(--primary);
+    position: relative;
+  }
+  .chat-bubble::before {
+    content:'';
+    position: absolute;
+    left: -8px; bottom: 16px;
+    border: 8px solid transparent;
+    border-right-color: white;
+    border-left: none;
+  }
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  /* USER bubble (right side) */
+  .user-bubble-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-direction: row-reverse;
+    animation: fadeInUp 0.4s ease;
+  }
+  .user-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), #ffb347);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(255,107,53,0.3);
+  }
+  .user-bubble {
+    background: linear-gradient(135deg, var(--accent2), #ff8c61);
+    color: white;
+    border-radius: 20px 20px 4px 20px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 16px rgba(255,107,53,0.25);
+    font-size: 0.93rem;
+    line-height: 1.75;
+    max-width: 80%;
+    font-weight: 500;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin: 28px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    box-shadow: var(--shadow-lg);
+  }
+  .section-divider .sec-icon { font-size: 1.8rem; }
+  .section-divider .sec-sub { font-size: 0.75rem; opacity: 0.85; font-weight: 400; margin-top: 2px; }
+
+  /* ===== KEY TERM BOX ===== */
+  .key-term-box {
+    background: linear-gradient(135deg, #e8f4ff, #f0f9ff);
+    border: 2px solid var(--primary-light);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin: 14px 0;
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+  .key-term-box .term-label {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 1rem;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ===== POINT BOX ===== */
+  .point-box {
+    background: linear-gradient(135deg, #e6fff8, #f0fff9);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .point-box .point-title {
+    font-weight: 800;
+    color: #009e7a;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* ===== WARNING BOX ===== */
+  .warn-box {
+    background: linear-gradient(135deg, #fff5f0, #fff8f5);
+    border-left: 4px solid var(--accent2);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .warn-box .warn-title {
+    font-weight: 800;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* ===== VISUAL DIAGRAM ===== */
+  .diagram-box {
+    background: white;
+    border: 2px dashed #c0d8f8;
+    border-radius: 14px;
+    padding: 18px;
+    margin: 14px 0;
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-light);
+  }
+  .diagram-box svg { max-width: 100%; height: auto; }
+
+  /* ===== QUIZ ===== */
+  .quiz-card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: var(--shadow);
+    border: 2px solid #e0e8f8;
+    animation: fadeInUp 0.4s ease;
+  }
+  .quiz-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .quiz-badge {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .quiz-q {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .quiz-option {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--quiz-bg);
+    border: 2px solid #e0e8f8;
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: left;
+    width: 100%;
+    color: var(--text);
+  }
+  .quiz-option:hover:not([disabled]) {
+    border-color: var(--primary);
+    background: #f0f6ff;
+    transform: translateX(3px);
+  }
+  .quiz-option.correct {
+    background: #e6fff5;
+    border-color: var(--correct);
+    color: #007a5a;
+  }
+  .quiz-option.wrong {
+    background: #fff0f3;
+    border-color: var(--wrong);
+    color: #c0002a;
+  }
+  .quiz-option .opt-mark {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #e0e8f8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .quiz-option.correct .opt-mark { background: var(--correct); color: white; }
+  .quiz-option.wrong .opt-mark { background: var(--wrong); color: white; }
+  .quiz-feedback {
+    display: none;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    font-weight: 500;
+    animation: fadeInUp 0.3s ease;
+  }
+  .quiz-feedback.correct { background: #e6fff5; color: #007a5a; border-left: 3px solid var(--correct); }
+  .quiz-feedback.wrong { background: #fff0f3; color: #c0002a; border-left: 3px solid var(--wrong); }
+  .quiz-feedback.show { display: block; }
+
+  /* TRUE/FALSE quiz */
+  .tf-options {
+    display: flex; gap: 10px;
+    margin-top: 10px;
+  }
+  .tf-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #e0e8f8;
+    background: var(--quiz-bg);
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    color: var(--text);
+  }
+  .tf-btn:hover:not([disabled]) { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .tf-btn.correct { background: #e6fff5; border-color: var(--correct); color: #007a5a; }
+  .tf-btn.wrong { background: #fff0f3; border-color: var(--wrong); color: #c0002a; }
+
+  /* ===== SCORE PANEL ===== */
+  .score-panel {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 18px;
+    padding: 24px;
+    margin: 24px 0;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    display: none;
+    animation: fadeInUp 0.5s ease;
+  }
+  .score-panel.show { display: block; }
+  .score-panel h3 { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+  .score-big { font-size: 3rem; font-weight: 900; font-family: 'M PLUS Rounded 1c', sans-serif; line-height: 1; }
+  .score-msg { opacity: 0.9; margin-top: 10px; font-size: 0.9rem; line-height: 1.6; }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .emoji-big { font-size: 1.4rem; }
+  strong { color: var(--primary); }
+  em { color: var(--accent2); font-style: normal; font-weight: 700; }
+
+  hr.chat-sep {
+    border: none;
+    border-top: 1px dashed #d0dcf0;
+    margin: 8px 0 20px;
+  }
+
+  /* ===== SCROLL TO TOP ===== */
+  .back-btn {
+    display: block;
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    padding: 14px;
+    border-radius: 14px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-decoration: none;
+    margin-top: 32px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+  }
+  .back-btn:hover { transform: translateY(-2px); }
+
+  /* summary toggle */
+  details {
+    background: white;
+    border: 2px solid #e0e8f8;
+    border-radius: 14px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+  summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--primary);
+    list-style: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  details[open] summary { border-bottom: 2px solid #e0e8f8; }
+  .details-body {
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <a class="header-back" href="sonobo_lecture.html">←</a>
+  <svg class="header-logo" viewBox="0 0 80 80" fill="none">
+    <circle cx="40" cy="40" r="38" fill="white" fill-opacity="0.15"/>
+    <ellipse cx="40" cy="48" rx="22" ry="14" fill="white" fill-opacity="0.9"/>
+    <circle cx="40" cy="32" r="14" fill="white"/>
+    <circle cx="35" cy="29" r="3.5" fill="#1a6fd4"/>
+    <circle cx="45" cy="29" r="3.5" fill="#1a6fd4"/>
+    <path d="M34 37 Q40 42 46 37" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <rect x="18" y="56" width="44" height="10" rx="5" fill="white" fill-opacity="0.7"/>
+    <rect x="25" y="60" width="8" height="4" rx="2" fill="#1a6fd4"/>
+    <rect x="36" y="60" width="8" height="4" rx="2" fill="#1a6fd4"/>
+    <rect x="47" y="60" width="8" height="4" rx="2" fill="#1a6fd4"/>
+  </svg>
+  <div class="header-title">
+    <h1>7. 画像の見方の基本</h1>
+    <p>方向・断面の用語をマスターしよう</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap">
+    <span class="progress-bar-label">進捗</span>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <span class="progress-bar-count" id="progressCount">0 / 7</span>
+  </div>
+
+  <!-- INTRO -->
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      こんにちは！今日は<strong>「画像の見方の基本」</strong>を一緒に勉強しよう！ 🎉<br><br>
+      エコー画像を正確に読むには、<em>方向の言葉</em>と<em>断面の名前</em>を正しく使えることがとっても大切だよ。<br>
+      「右と左を間違えた！」なんてことが絶対ないように、一つひとつ丁寧に学んでいこうね 📐
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">よろしくお願いします！どんなことを学ぶの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      今日学ぶのはこの7つ！<br><br>
+      <strong>①</strong> 画面内・面外（In-plane / Out-of-plane）<br>
+      <strong>②</strong> 深部・表層（Deep / Superficial）<br>
+      <strong>③</strong> 内側・外側（Medial / Lateral）<br>
+      <strong>④</strong> 頭側・尾側（Cranial / Caudal）<br>
+      <strong>⑤</strong> 冠状断（Coronal）<br>
+      <strong>⑥</strong> 矢状断（Sagittal）<br>
+      <strong>⑦</strong> 横断面（Transverse / Short axis）<br><br>
+      特に画像表示の取り決め（プローブマーカーとスクリーンマーカーの関係）がポイントだよ！
+    </div>
+  </div>
+
+  <!-- ===== SECTION 1: 画面内・面外 ===== -->
+  <div class="section-divider" id="sec1">
+    <span class="sec-icon">🎯</span>
+    <div>
+      <div>① 画面内・面外（In-plane / Out-of-plane）</div>
+      <div class="sec-sub">針が断面の「中」にいるか「外」にいるか</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">「画面内・面外」ってどういう意味？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      いい質問！<strong>「画面内・面外」</strong>は、超音波の断面に対して、<em>対象（針など）が断面の中にいるか外にいるか</em>を表す概念だよ。<br><br>
+      エコーガイド下手技（穿刺・神経ブロック）のとき、特によく使う言葉なんだ。
+    </div>
+  </div>
+
+  <div class="key-term-box">
+    <div class="term-label">📌 画面内（In-plane）とは？</div>
+    針全体が超音波ビームの断面の中に入っていて、<strong>針の全長が画像上に白い線として見える</strong>状態のこと。針先がどこにあるか常に追える！
+  </div>
+
+  <div class="key-term-box">
+    <div class="term-label">📌 面外（Out-of-plane）とは？</div>
+    針が断面から外れていて、<strong>針の断面だけが画像上に「点」として映る</strong>状態のこと。針先と見えている断面がずれている危険があるよ。
+  </div>
+
+  <!-- Visual diagram -->
+  <div class="diagram-box">
+    <svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <!-- Left: In-plane -->
+      <rect x="10" y="20" width="150" height="130" rx="10" fill="#f0f6ff" stroke="#1a6fd4" stroke-width="2"/>
+      <text x="85" y="14" text-anchor="middle" font-size="11" fill="#1a6fd4" font-weight="bold">画面内（In-plane）</text>
+      <!-- Ultrasound beam area -->
+      <rect x="25" y="35" width="120" height="100" rx="6" fill="#ddeeff" opacity="0.7"/>
+      <text x="85" y="52" text-anchor="middle" font-size="9" fill="#5a6a8a">超音波断面</text>
+      <!-- Needle in plane (line) -->
+      <line x1="30" y1="110" x2="130" y2="75" stroke="#ff6b35" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="130" cy="75" r="5" fill="#ff6b35"/>
+      <text x="85" y="135" text-anchor="middle" font-size="10" fill="#ff6b35" font-weight="bold">針が「線」で見える ✅</text>
+      <!-- Label -->
+      <text x="85" y="148" text-anchor="middle" font-size="9" fill="#5a6a8a">針先が常に確認できる</text>
+
+      <!-- Right: Out-of-plane -->
+      <rect x="180" y="20" width="150" height="130" rx="10" fill="#fff5f0" stroke="#ff6b35" stroke-width="2"/>
+      <text x="255" y="14" text-anchor="middle" font-size="11" fill="#ff6b35" font-weight="bold">面外（Out-of-plane）</text>
+      <rect x="195" y="35" width="120" height="100" rx="6" fill="#ffeee6" opacity="0.7"/>
+      <text x="255" y="52" text-anchor="middle" font-size="9" fill="#5a6a8a">超音波断面</text>
+      <!-- Needle out of plane (dot) -->
+      <circle cx="255" cy="90" r="6" fill="#ff6b35"/>
+      <text x="255" y="135" text-anchor="middle" font-size="10" fill="#ff6b35" font-weight="bold">針が「点」で見える ⚠️</text>
+      <text x="255" y="148" text-anchor="middle" font-size="9" fill="#5a6a8a">針先の位置を見失いやすい</text>
+    </svg>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 臨床上の注意点</div>
+    面外（Out-of-plane）では針先が断面外に出やすく、<strong>針先の誤認リスク</strong>があるよ。<br>
+    もし「針が見えなくなった！」と思ったら、まず「針が面外に外れた」と考えて、<strong>スライド・ファン操作</strong>で再び針を捉えにいこう。<br>
+    面外では"点"状に見えやすいので、<em>短い進入・頻回再確認</em>が安全の基本！
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-card" id="quiz1">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 1</span>
+    </div>
+    <div class="quiz-q">エコーガイド下穿刺で「針が白い線として全体が見えている」状態を何という？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,true,'A')">
+        <span class="opt-mark">A</span> 画面内（In-plane）
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,false,'B')">
+        <span class="opt-mark">B</span> 面外（Out-of-plane）
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,false,'C')">
+        <span class="opt-mark">C</span> 深部（Deep）
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,false,'D')">
+        <span class="opt-mark">D</span> 横断面（Transverse）
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz1-fb-correct">
+      🎉 正解！ 画面内（In-plane）は、針全体が超音波断面の中に含まれていて、白い線として見える状態。針先の位置を常に確認できる安全な状態だよ！
+    </div>
+    <div class="quiz-feedback wrong" id="quiz1-fb-wrong">
+      💡 残念！ 正解は「画面内（In-plane）」。面外（Out-of-plane）では針が"点"として見えるよ。
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: 深部・表層 ===== -->
+  <div class="section-divider" id="sec2">
+    <span class="sec-icon">📏</span>
+    <div>
+      <div>② 深部・表層（Deep / Superficial）</div>
+      <div class="sec-sub">画面の「縦方向」の位置関係</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">深部・表層って、どこのことを指してるの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      エコー画像を見ると、上の方がプローブに近くて、下の方が遠い。<br>
+      つまり…<br>
+      <strong>・表層（Superficial）</strong>＝画面の<em>上側</em>＝プローブに近い側<br>
+      <strong>・深部（Deep）</strong>＝画面の<em>下側</em>＝プローブから遠い側<br><br>
+      「深さ（Depth）」の設定を変えると、どこまで見えるかが変わるんだ！
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <!-- Probe -->
+      <rect x="100" y="5" width="100" height="22" rx="8" fill="#1a6fd4"/>
+      <text x="150" y="20" text-anchor="middle" font-size="11" fill="white" font-weight="bold">🔷 プローブ</text>
+      <!-- Screen -->
+      <rect x="40" y="32" width="220" height="118" rx="8" fill="#e8f4ff" stroke="#1a6fd4" stroke-width="2"/>
+      <!-- Depth lines -->
+      <line x1="40" y1="60" x2="260" y2="60" stroke="#c0d8f8" stroke-dasharray="4,3"/>
+      <line x1="40" y1="90" x2="260" y2="90" stroke="#c0d8f8" stroke-dasharray="4,3"/>
+      <line x1="40" y1="120" x2="260" y2="120" stroke="#c0d8f8" stroke-dasharray="4,3"/>
+      <!-- Labels -->
+      <text x="28" y="52" text-anchor="end" font-size="10" fill="#00c8a0" font-weight="bold">表層</text>
+      <text x="28" y="82" text-anchor="end" font-size="10" fill="#5a6a8a">中間</text>
+      <text x="28" y="130" text-anchor="end" font-size="10" fill="#1a6fd4" font-weight="bold">深部</text>
+      <!-- Arrow -->
+      <line x1="15" y1="35" x2="15" y2="145" stroke="#1a6fd4" stroke-width="2"/>
+      <polygon points="15,150 11,140 19,140" fill="#1a6fd4"/>
+      <text x="8" y="95" text-anchor="middle" font-size="9" fill="#1a6fd4" transform="rotate(-90,8,95)">深さ方向</text>
+      <!-- Tissues -->
+      <ellipse cx="150" cy="55" rx="40" ry="12" fill="#b6e3f4" opacity="0.7"/>
+      <text x="150" y="59" text-anchor="middle" font-size="9" fill="#1a6fd4">皮膚・皮下組織</text>
+      <ellipse cx="150" cy="90" rx="50" ry="14" fill="#90d4a0" opacity="0.6"/>
+      <text x="150" y="94" text-anchor="middle" font-size="9" fill="#2a7a40">筋肉</text>
+      <ellipse cx="150" cy="125" rx="35" ry="10" fill="#f8e0a0" opacity="0.7"/>
+      <text x="150" y="129" text-anchor="middle" font-size="9" fill="#8a6000">内臓・骨</text>
+    </svg>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 深度（Depth）調整のコツ</div>
+    検査の最初は深度を<strong>深めに</strong>して全景を把握し、必要に応じて浅くして細部を確認しよう。<br>
+    ただし深部が暗い（見えにくい）ときは、深度だけでなく<em>TGC（Time Gain Compensation）や周波数</em>の調整も必要になることがあるよ。
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-card" id="quiz2">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 2</span>
+    </div>
+    <div class="quiz-q">エコー画像で「表層（Superficial）」はどの位置にある？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,false,'A')">
+        <span class="opt-mark">A</span> 画面の下側（プローブから遠い）
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,true,'B')">
+        <span class="opt-mark">B</span> 画面の上側（プローブに近い）
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,false,'C')">
+        <span class="opt-mark">C</span> 画面の右側
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,false,'D')">
+        <span class="opt-mark">D</span> 画面の中央
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz2-fb-correct">🎉 正解！ 表層は画面の上側＝プローブに近い側だよ。深部は画面の下側になるね。</div>
+    <div class="quiz-feedback wrong" id="quiz2-fb-wrong">💡 正解は「画面の上側」。プローブに近いほど浅く（表層）、遠いほど深く（深部）なるよ。</div>
+  </div>
+
+  <!-- ===== SECTION 3: 内側・外側 ===== -->
+  <div class="section-divider" id="sec3">
+    <span class="sec-icon">↔️</span>
+    <div>
+      <div>③ 内側・外側（Medial / Lateral）</div>
+      <div class="sec-sub">体の正中を基準にした左右方向</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">内側・外側って、どこが基準なの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      基準は<strong>体の正中線（真ん中の縦の線）</strong>！<br><br>
+      <strong>・内側（Medial）</strong>＝正中に<em>近い</em>側<br>
+      <strong>・外側（Lateral）</strong>＝正中から<em>遠い</em>側<br><br>
+      例えば、足でいえば：<br>
+      親指側（足の内側）→ 内側（Medial）<br>
+      小指側（足の外側）→ 外側（Lateral）<br><br>
+      エコー画像上で左右を正しく認識するためには、<em>プローブマーカーとスクリーンマーカーが合っているか</em>を最初に確認することが超重要だよ！
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 内側・外側の取り違えに注意！</div>
+    内外の取り違えは、<strong>穿刺や神経ブロックなどの手技で致命的なミス</strong>につながることがある。<br>
+    検査開始前に必ず<strong>プローブマーカー（物理的な印）</strong>と<strong>スクリーンマーカー（画面上の印）</strong>の向きが一致しているか確認しよう！<br>
+    チームで共有するときは「<em>体位＋内外＋断面名</em>」をセットで記録するのがベストだよ。
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-card" id="quiz3">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 3</span>
+    </div>
+    <div class="quiz-q">「内側（Medial）」の正しい定義はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,false,'A')">
+        <span class="opt-mark">A</span> 体の正中線から遠い側
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,true,'B')">
+        <span class="opt-mark">B</span> 体の正中線に近い側
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,false,'C')">
+        <span class="opt-mark">C</span> プローブから遠い側
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,false,'D')">
+        <span class="opt-mark">D</span> 頭に近い側
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz3-fb-correct">🎉 正解！ 内側＝正中に近い側。外側（Lateral）は正中から遠い側だよ。</div>
+    <div class="quiz-feedback wrong" id="quiz3-fb-wrong">💡 正解は「体の正中線に近い側」。外側（Lateral）が正中から遠い側になるよ。</div>
+  </div>
+
+  <!-- Quiz 3b TF -->
+  <div class="quiz-card" id="quiz3b">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 3b ○✕</span>
+    </div>
+    <div class="quiz-q">「プローブマーカーとスクリーンマーカーが一致していなくても、左右の認識には影響しない」</div>
+    <div class="tf-options">
+      <button class="tf-btn" onclick="answerTF('quiz3b',this,false)">○ 正しい</button>
+      <button class="tf-btn" onclick="answerTF('quiz3b',this,true)">✕ 誤り</button>
+    </div>
+    <div class="quiz-feedback wrong" id="quiz3b-fb-wrong">💡 正解は「✕ 誤り」。マーカーのズレは左右の認識を崩す！開始前の確認が大切だよ。</div>
+    <div class="quiz-feedback correct" id="quiz3b-fb-correct">🎉 正解！ マーカーの不一致は左右の認識を崩す原因になる。開始前の確認は必須だよ。</div>
+  </div>
+
+  <!-- ===== SECTION 4: 頭側・尾側 ===== -->
+  <div class="section-divider" id="sec4">
+    <span class="sec-icon">⬆️</span>
+    <div>
+      <div>④ 頭側・尾側（Cranial / Caudal）</div>
+      <div class="sec-sub">頭に近いか、足に近いか</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">頭側・尾側ってどういう意味？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      シンプルに覚えてね！<br><br>
+      <strong>・頭側（Cranial / Superior）</strong>＝<em>頭に近い</em>方向<br>
+      <strong>・尾側（Caudal / Inferior）</strong>＝<em>足に近い</em>方向<br><br>
+      エコー画像の表示ルール（画像表示の取り決め）では、どの方向が画面のどちらに来るかを統一するのがとっても大事なんだ。<br>
+      バラバラだと「上がどっちか」分からなくなっちゃうよね。
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 臨床でよくあるシーン</div>
+    <strong>IVC（下大静脈）</strong>など体の縦方向に走る構造を見るときは、頭側・尾側の方向が混乱しやすい。<br>
+    保存画像には頭尾が推定できる<em>ランドマーク</em>（骨など目印になる構造）を一緒に映しておくと後で確認しやすくなるよ！
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-card" id="quiz4">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 4</span>
+    </div>
+    <div class="quiz-q">「尾側（Caudal）」が指す方向はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,false,'A')">
+        <span class="opt-mark">A</span> 頭に近い方向
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,true,'B')">
+        <span class="opt-mark">B</span> 足に近い方向
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,false,'C')">
+        <span class="opt-mark">C</span> 正中に近い方向
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,false,'D')">
+        <span class="opt-mark">D</span> プローブに近い方向
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz4-fb-correct">🎉 正解！ 尾側（Caudal）は足に近い方向。頭側（Cranial）が頭に近い方向だよ。</div>
+    <div class="quiz-feedback wrong" id="quiz4-fb-wrong">💡 正解は「足に近い方向」。Caudal＝尾（しっぽ）の方向、つまり足側だね。</div>
+  </div>
+
+  <!-- ===== SECTION 5: 冠状断 ===== -->
+  <div class="section-divider" id="sec5">
+    <span class="sec-icon">🔲</span>
+    <div>
+      <div>⑤ 冠状断（Coronal section）</div>
+      <div class="sec-sub">前後を分ける縦の面</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">冠状断って、体をどう切った断面なの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      冠状断は、体を<strong>前（腹側）と後ろ（背側）に分ける縦の面</strong>で切った断面だよ！<br><br>
+      "冠（かんむり）"をかぶる方向、つまり<em>頭の上から見下ろす感じ</em>の面、と覚えると分かりやすいかも。<br><br>
+      イメージは人体の「正面から見た図」に近い断面。
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <!-- Body silhouette front view -->
+      <ellipse cx="100" cy="60" rx="28" ry="35" fill="#ddeeff" stroke="#1a6fd4" stroke-width="1.5"/>
+      <text x="100" y="64" text-anchor="middle" font-size="10" fill="#1a6fd4">頭</text>
+      <rect x="72" y="92" width="56" height="55" rx="8" fill="#ddeeff" stroke="#1a6fd4" stroke-width="1.5"/>
+      <text x="100" y="123" text-anchor="middle" font-size="10" fill="#1a6fd4">胴体</text>
+      <!-- Coronal plane line -->
+      <line x1="100" y1="25" x2="100" y2="148" stroke="#ff6b35" stroke-width="2.5" stroke-dasharray="5,3"/>
+      <text x="140" y="20" font-size="10" fill="#ff6b35" font-weight="bold">冠状面</text>
+      <text x="140" y="33" font-size="9" fill="#ff6b35">（前後を分ける）</text>
+      <!-- Arrows -->
+      <text x="55" y="115" font-size="9" fill="#5a6a8a">前（腹）</text>
+      <text x="110" y="115" font-size="9" fill="#5a6a8a">後（背）</text>
+      <!-- 3D axes legend -->
+      <text x="200" y="50" font-size="10" fill="#1a6fd4" font-weight="bold">3断面まとめ</text>
+      <rect x="185" y="60" width="100" height="85" rx="8" fill="white" stroke="#e0e8f8" stroke-width="1.5"/>
+      <text x="195" y="80" font-size="9" fill="#ff6b35">● 冠状断：前後を分ける</text>
+      <text x="195" y="97" font-size="9" fill="#1a6fd4">● 矢状断：左右を分ける</text>
+      <text x="195" y="114" font-size="9" fill="#00c8a0">● 横断面：上下を分ける</text>
+      <text x="195" y="134" font-size="8" fill="#5a6a8a">（頭尾を分ける）</text>
+    </svg>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 臨床でのポイント</div>
+    <strong>肝臓・脾臓などの腹部臓器</strong>は冠状断でスイープ（プローブをずらしながら走査）すると、見落としを減らせるよ！<br>
+    他の人に記録を共有するときは「冠状断」という断面名に加えて、<em>プローブマーカーの位置も一緒に記録</em>しておこう。
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-card" id="quiz5">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 5</span>
+    </div>
+    <div class="quiz-q">冠状断（Coronal section）の正しい説明はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,false,'A')">
+        <span class="opt-mark">A</span> 体を左右に分ける縦の面
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,false,'B')">
+        <span class="opt-mark">B</span> 体を頭尾（上下）に分ける水平の面
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,true,'C')">
+        <span class="opt-mark">C</span> 体を前後に分ける縦の面
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,false,'D')">
+        <span class="opt-mark">D</span> プローブに垂直な面
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz5-fb-correct">🎉 正解！ 冠状断は体を前後に分ける縦の面。解剖学の標準定義だよ。</div>
+    <div class="quiz-feedback wrong" id="quiz5-fb-wrong">💡 正解は「体を前後に分ける縦の面」。左右を分けるのが矢状断、上下を分けるのが横断面だよ。</div>
+  </div>
+
+  <!-- ===== SECTION 6: 矢状断 ===== -->
+  <div class="section-divider" id="sec6">
+    <span class="sec-icon">⬆️</span>
+    <div>
+      <div>⑥ 矢状断（Sagittal section）</div>
+      <div class="sec-sub">左右を分ける縦の面（縦断面・長軸断面）</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">矢状断って冠状断と何が違うの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      冠状断が「前後を分ける」のに対して、矢状断は<strong>左右を分ける</strong>縦の面だよ！<br><br>
+      「矢」が飛んでいく方向をイメージして、<em>体を横からすーっと縦に切った断面</em>と考えるといいよ。<br><br>
+      エコーの資料では「縦断面（矢状断面・<em>長軸断面</em>）」と書かれることが多いんだ。<br><br>
+      ⚠️ 施設によって「縦断」「矢状断」「長軸像」と呼び方が違うことがあるから、<em>矢状断／長軸など複数の言葉を一緒に使う</em>と相手に伝わりやすいよ！
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 臨床でのポイント</div>
+    <strong>長軸像（矢状系断面）</strong>では、血管・胆嚢・IVCの連続性を評価するときに便利！<br>
+    管状構造を縦に追うことで、走行や分岐が分かりやすくなるよ。
+  </div>
+
+  <!-- Quiz 6 -->
+  <div class="quiz-card" id="quiz6">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 6</span>
+    </div>
+    <div class="quiz-q">矢状断は別名「長軸断面」とも呼ばれる。エコーで矢状断（長軸像）が特に有用な構造物は？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz6',this,false,'A')">
+        <span class="opt-mark">A</span> 丸い形の腫瘤を断面で見るとき
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz6',this,true,'B')">
+        <span class="opt-mark">B</span> 血管・胆嚢・IVCなど管状・縦走構造の連続性を評価するとき
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz6',this,false,'C')">
+        <span class="opt-mark">C</span> 神経を同定するとき（まず短軸で見る場合）
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz6',this,false,'D')">
+        <span class="opt-mark">D</span> 肝臓の体積を計測するとき
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz6-fb-correct">🎉 正解！ 矢状断（長軸像）は血管やIVCなど管状構造の走行・連続性を追うのにとても有用だよ。</div>
+    <div class="quiz-feedback wrong" id="quiz6-fb-wrong">💡 正解は「血管・胆嚢・IVCの連続性を評価するとき」。長軸像は管状構造を追うのが得意！</div>
+  </div>
+
+  <!-- ===== SECTION 7: 横断面 ===== -->
+  <div class="section-divider" id="sec7">
+    <span class="sec-icon">🔵</span>
+    <div>
+      <div>⑦ 横断面（Transverse / Short axis）</div>
+      <div class="sec-sub">上下（頭尾）を分ける水平の面</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">横断面って、どんな断面なの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      横断面は体を<strong>上下（頭側と尾側）に分ける水平の面</strong>で切った断面だよ！<br><br>
+      別名：<em>短軸断面（Short axis）</em><br><br>
+      エコーの資料では「横断面（短軸断面）」と「縦断面（長軸断面）」がセットで説明されることが多い。<br><br>
+      血管や神経はまず横断面（短軸）で同定するのが基本だよ。丸く見えるからね🔵
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <!-- Short axis: vessel cross section -->
+      <rect x="20" y="20" width="120" height="110" rx="10" fill="#f0f6ff" stroke="#1a6fd4" stroke-width="2"/>
+      <text x="80" y="14" text-anchor="middle" font-size="11" fill="#1a6fd4" font-weight="bold">横断面（短軸）</text>
+      <circle cx="80" cy="75" r="30" fill="#ddeeff" stroke="#1a6fd4" stroke-width="2"/>
+      <circle cx="80" cy="75" r="20" fill="white" stroke="#1a6fd4" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="80" y="79" text-anchor="middle" font-size="10" fill="#1a6fd4">血管</text>
+      <text x="80" y="120" text-anchor="middle" font-size="10" fill="#5a6a8a">丸く見える 🔵</text>
+
+      <!-- Long axis: vessel longitudinal -->
+      <rect x="180" y="20" width="120" height="110" rx="10" fill="#f0fff9" stroke="#00c8a0" stroke-width="2"/>
+      <text x="240" y="14" text-anchor="middle" font-size="11" fill="#00c8a0" font-weight="bold">縦断面（長軸）</text>
+      <ellipse cx="240" cy="75" rx="45" ry="20" fill="#ccf5e8" stroke="#00c8a0" stroke-width="2"/>
+      <line x1="195" y1="65" x2="285" y2="65" stroke="#00c8a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="195" y1="85" x2="285" y2="85" stroke="#00c8a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="240" y="79" text-anchor="middle" font-size="10" fill="#009e7a">血管</text>
+      <text x="240" y="120" text-anchor="middle" font-size="10" fill="#5a6a8a">管状に見える 📏</text>
+    </svg>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 断面名の記録が大切！</div>
+    保存した画像で「横断面なのか縦断面なのか」が分からないと、<strong>後日の読み直しで誤読</strong>が生まれる。<br>
+    必ず画像に<em>断面名を明記</em>する習慣をつけよう！
+  </div>
+
+  <!-- Quiz 7 -->
+  <div class="quiz-card" id="quiz7">
+    <div class="quiz-header">
+      <span class="quiz-badge">クイズ 7</span>
+    </div>
+    <div class="quiz-q">エコーで血管を横断面（短軸）で見ると、どのような形に見える？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,false,'A')">
+        <span class="opt-mark">A</span> 長い管状（楕円形）に見える
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,true,'B')">
+        <span class="opt-mark">B</span> 丸（円形）に見える
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,false,'C')">
+        <span class="opt-mark">C</span> 三角形に見える
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,false,'D')">
+        <span class="opt-mark">D</span> 見えなくなる
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz7-fb-correct">🎉 正解！ 横断面（短軸）では血管は丸（円形）に見えるよ。縦断面（長軸）だと管状に見える。</div>
+    <div class="quiz-feedback wrong" id="quiz7-fb-wrong">💡 正解は「丸（円形）に見える」。横断面で見ると血管の断面が丸く映るよ！</div>
+  </div>
+
+  <!-- FINAL QUIZ (総合) -->
+  <div class="section-divider">
+    <span class="sec-icon">🏆</span>
+    <div>
+      <div>総合クイズ</div>
+      <div class="sec-sub">全部理解できたか確認しよう！</div>
+    </div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      最後に総合クイズをやってみよう！ここまでの内容が定着しているか確かめるよ 💪
+    </div>
+  </div>
+
+  <!-- Final Quiz A -->
+  <div class="quiz-card" id="fq1">
+    <div class="quiz-header">
+      <span class="quiz-badge">総合 1</span>
+    </div>
+    <div class="quiz-q">次の断面の説明と名称の組み合わせで、正しいものはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,false,'A')">
+        <span class="opt-mark">A</span> 矢状断：体を前後に分ける縦の面
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,false,'B')">
+        <span class="opt-mark">B</span> 横断面：体を左右に分ける縦の面
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,true,'C')">
+        <span class="opt-mark">C</span> 冠状断：体を前後に分ける縦の面
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,false,'D')">
+        <span class="opt-mark">D</span> 冠状断：体を左右に分ける縦の面
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="fq1-fb-correct">🎉 正解！ 冠状断＝前後を分ける、矢状断＝左右を分ける、横断面＝上下を分ける。この3つをセットで覚えよう！</div>
+    <div class="quiz-feedback wrong" id="fq1-fb-wrong">💡 正解は「冠状断：体を前後に分ける縦の面」。矢状断＝左右、横断面＝上下（頭尾）だよ。</div>
+  </div>
+
+  <!-- Final Quiz B -->
+  <div class="quiz-card" id="fq2">
+    <div class="quiz-header">
+      <span class="quiz-badge">総合 2</span>
+    </div>
+    <div class="quiz-q">エコーガイド下穿刺中に「針が見えなくなった」。まず考えるべき原因は？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,false,'A')">
+        <span class="opt-mark">A</span> 針が溶けた
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,true,'B')">
+        <span class="opt-mark">B</span> 針が面外（Out-of-plane）に外れた
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,false,'C')">
+        <span class="opt-mark">C</span> ゲインが高すぎる
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,false,'D')">
+        <span class="opt-mark">D</span> プローブが壊れた
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="fq2-fb-correct">🎉 正解！ 針が見えないときはまず「面外に外れた」と考えて、スライド・ファン操作で再捕捉しよう！</div>
+    <div class="quiz-feedback wrong" id="fq2-fb-wrong">💡 正解は「針が面外に外れた」。スライド・ファン操作で断面を合わせて再捕捉しよう！</div>
+  </div>
+
+  <!-- Final Quiz C -->
+  <div class="quiz-card" id="fq3">
+    <div class="quiz-header">
+      <span class="quiz-badge">総合 3</span>
+    </div>
+    <div class="quiz-q">「頭側（Cranial）」と「尾側（Caudal）」について、正しい記述はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,false,'A')">
+        <span class="opt-mark">A</span> 頭側は足に近く、尾側は頭に近い
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,false,'B')">
+        <span class="opt-mark">B</span> 頭側・尾側は内外と同じ意味である
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,true,'C')">
+        <span class="opt-mark">C</span> 頭側は頭に近く、尾側は足に近い
+      </button>
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,false,'D')">
+        <span class="opt-mark">D</span> 頭側・尾側はプローブの向きだけで決まる
+      </button>
+    </div>
+    <div class="quiz-feedback correct" id="fq3-fb-correct">🎉 正解！ 頭側（Cranial）＝頭に近い、尾側（Caudal）＝足に近い。シンプルに覚えよう！</div>
+    <div class="quiz-feedback wrong" id="fq3-fb-wrong">💡 正解は「頭側は頭に近く、尾側は足に近い」。Caudal＝"しっぽ"の方向（足側）と覚えるといいよ！</div>
+  </div>
+
+  <!-- Score Panel -->
+  <div class="score-panel" id="scorePanel">
+    <h3>🏆 セクション7 クイズ結果</h3>
+    <div class="score-big" id="scoreDisplay">0/10</div>
+    <div class="score-msg" id="scoreMsg">頑張ったね！</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      お疲れ様！これで「画像の見方の基本」は完了だよ 🎉<br><br>
+      まとめると：<br>
+      ✅ <strong>画面内/面外</strong>＝針が断面の中にいるか外か<br>
+      ✅ <strong>深部/表層</strong>＝画面の下/上（プローブからの距離）<br>
+      ✅ <strong>内側/外側</strong>＝正中に近い/遠い<br>
+      ✅ <strong>頭側/尾側</strong>＝頭に近い/足に近い<br>
+      ✅ <strong>冠状断</strong>＝前後を分ける縦の面<br>
+      ✅ <strong>矢状断</strong>＝左右を分ける縦の面（長軸）<br>
+      ✅ <strong>横断面</strong>＝上下を分ける水平の面（短軸）<br><br>
+      次は「8. 組織のうつり方の違い」に進んでみよう！
+    </div>
+  </div>
+
+  <a class="back-btn" href="sonobo_lecture.html">← 目次に戻る</a>
+
+</main>
+
+<script>
+  // Quiz state
+  const quizScores = {};
+  const quizIds = ['quiz1','quiz2','quiz3','quiz3b','quiz4','quiz5','quiz6','quiz7','fq1','fq2','fq3'];
+  let answeredCount = 0;
+  let correctCount = 0;
+  const totalQuizzes = quizIds.length;
+
+  function updateProgress() {
+    const pct = (answeredCount / totalQuizzes * 100).toFixed(0);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = answeredCount + ' / ' + totalQuizzes;
+    if (answeredCount === totalQuizzes) {
+      const panel = document.getElementById('scorePanel');
+      panel.classList.add('show');
+      document.getElementById('scoreDisplay').textContent = correctCount + '/' + totalQuizzes;
+      let msg = '';
+      if (correctCount >= 10) msg = '完璧！全問正解！すごいね🎊';
+      else if (correctCount >= 8) msg = 'あと少し！もう一度見直してみよう👀';
+      else if (correctCount >= 6) msg = '半分以上正解！復習してさらに定着させよう💪';
+      else msg = 'もう一度ゆっくり読んで、再チャレンジしてみよう📖';
+      document.getElementById('scoreMsg').textContent = msg;
+    }
+  }
+
+  function answerQuiz(quizId, btn, isCorrect, opt) {
+    if (quizScores[quizId] !== undefined) return;
+    quizScores[quizId] = isCorrect;
+    answeredCount++;
+    if (isCorrect) correctCount++;
+
+    const card = document.getElementById(quizId);
+    const allBtns = card.querySelectorAll('.quiz-option');
+    allBtns.forEach(b => { b.disabled = true; });
+    btn.classList.add(isCorrect ? 'correct' : 'wrong');
+
+    const fbCorrect = document.getElementById(quizId + '-fb-correct');
+    const fbWrong = document.getElementById(quizId + '-fb-wrong');
+    if (isCorrect) {
+      fbCorrect.classList.add('show');
+    } else {
+      fbWrong.classList.add('show');
+      // Also highlight correct answer
+      allBtns.forEach(b => {
+        if (b.onclick.toString().includes('true')) {
+          b.classList.add('correct');
+        }
+      });
+    }
+    updateProgress();
+  }
+
+  function answerTF(quizId, btn, isCorrect) {
+    if (quizScores[quizId] !== undefined) return;
+    quizScores[quizId] = isCorrect;
+    answeredCount++;
+    if (isCorrect) correctCount++;
+
+    const card = document.getElementById(quizId);
+    const allBtns = card.querySelectorAll('.tf-btn');
+    allBtns.forEach(b => { b.disabled = true; });
+    btn.classList.add(isCorrect ? 'correct' : 'wrong');
+
+    const fb = document.getElementById(quizId + '-fb-' + (isCorrect ? 'correct' : 'wrong'));
+    fb.classList.add('show');
+    updateProgress();
+  }
+</script>
+</body>
+</html>

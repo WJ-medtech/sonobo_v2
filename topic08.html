@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8. 組織のうつり方の違い — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a6fd4;
+    --primary-light: #4a9eff;
+    --primary-dark: #0d4fa0;
+    --accent: #00c8a0;
+    --accent2: #ff6b35;
+    --bg: #f0f6ff;
+    --card: #ffffff;
+    --text: #1a2540;
+    --text-light: #5a6a8a;
+    --shadow: 0 4px 24px rgba(26,111,212,0.12);
+    --shadow-lg: 0 8px 40px rgba(26,111,212,0.18);
+    --correct: #00c8a0;
+    --wrong: #ff4d6d;
+    --quiz-bg: #f8faff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .app-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-back {
+    background: rgba(255,255,255,0.18);
+    border: none; border-radius: 50%;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: white; font-size: 1.2rem;
+    transition: background 0.2s; flex-shrink: 0; text-decoration: none;
+  }
+  .header-back:hover { background: rgba(255,255,255,0.3); }
+  .header-logo { width: 44px; height: 44px; flex-shrink: 0; }
+  .header-title { color: white; font-family: 'M PLUS Rounded 1c', sans-serif; }
+  .header-title h1 { font-size: 1.05rem; font-weight: 800; line-height: 1.2; }
+  .header-title p { font-size: 0.72rem; opacity: 0.85; font-weight: 400; }
+  .main { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    background: white; border-radius: 12px; padding: 12px 16px;
+    margin-bottom: 20px; box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .progress-bar-label { font-size: 0.78rem; color: var(--text-light); font-weight: 700; white-space: nowrap; }
+  .progress-bar-track { flex: 1; height: 8px; background: #e0e8f8; border-radius: 99px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 99px; transition: width 0.5s ease; }
+  .progress-bar-count { font-size: 0.78rem; font-weight: 800; color: var(--primary); white-space: nowrap; }
+
+  /* CHAT */
+  .chat-bubble-wrap {
+    display: flex; align-items: flex-end; gap: 12px;
+    margin-bottom: 20px; animation: fadeInUp 0.4s ease;
+  }
+  .sonobo-avatar {
+    width: 60px; height: 60px; flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(26,111,212,0.3));
+    animation: bounce 3s ease-in-out infinite;
+  }
+  @keyframes bounce { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-6px); } }
+  .chat-bubble {
+    background: white; border-radius: 20px 20px 20px 4px;
+    padding: 16px 20px; box-shadow: var(--shadow); flex: 1;
+    font-size: 0.93rem; line-height: 1.8;
+    border-left: 4px solid var(--primary); position: relative;
+  }
+  .chat-bubble::before {
+    content:''; position: absolute; left: -8px; bottom: 16px;
+    border: 8px solid transparent; border-right-color: white; border-left: none;
+  }
+  .chat-bubble .speaker {
+    font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 800;
+    color: var(--primary); font-size: 0.8rem; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .user-bubble-wrap {
+    display: flex; align-items: flex-end; gap: 12px;
+    margin-bottom: 20px; flex-direction: row-reverse;
+    animation: fadeInUp 0.4s ease;
+  }
+  .user-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), #ffb347);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(255,107,53,0.3);
+  }
+  .user-bubble {
+    background: linear-gradient(135deg, var(--accent2), #ff8c61);
+    color: white; border-radius: 20px 20px 4px 20px;
+    padding: 14px 18px; box-shadow: 0 4px 16px rgba(255,107,53,0.25);
+    font-size: 0.93rem; line-height: 1.75; max-width: 80%; font-weight: 500;
+  }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white; border-radius: 16px; padding: 16px 20px;
+    margin: 28px 0 20px;
+    display: flex; align-items: center; gap: 14px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800; font-size: 1.05rem;
+    box-shadow: var(--shadow-lg);
+  }
+  .section-divider .sec-icon { font-size: 1.8rem; }
+  .section-divider .sec-sub { font-size: 0.75rem; opacity: 0.85; font-weight: 400; margin-top: 2px; }
+
+  /* ECHO SCALE VISUAL */
+  .echo-scale {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin: 14px 0;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .echo-scale-title {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800; color: var(--primary);
+    font-size: 0.88rem; margin-bottom: 12px; text-align: center;
+  }
+  .echo-gradient-bar {
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #000000 0%, #1a1a2e 15%, #2a3a5a 30%, #5a7ab0 50%, #a0c0e8 70%, #d8eaff 85%, #ffffff 100%);
+    margin-bottom: 8px;
+    border: 1px solid #e0e8f8;
+  }
+  .echo-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  /* KEY TERM BOX */
+  .key-term-box {
+    background: linear-gradient(135deg, #e8f4ff, #f0f9ff);
+    border: 2px solid var(--primary-light);
+    border-radius: 14px; padding: 16px 18px; margin: 14px 0;
+    font-size: 0.9rem; line-height: 1.75;
+  }
+  .key-term-box .term-label {
+    font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 800;
+    color: var(--primary); font-size: 1rem; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ECHO CARD (visual representation) */
+  .echo-card {
+    background: white;
+    border: 2px solid #e0e8f8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .echo-swatch {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    border: 2px solid #e0e8f8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  .echo-card-body { flex: 1; font-size: 0.88rem; line-height: 1.65; }
+  .echo-card-name {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800; font-size: 0.95rem; margin-bottom: 4px;
+  }
+
+  /* POINT BOX */
+  .point-box {
+    background: linear-gradient(135deg, #e6fff8, #f0fff9);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0; padding: 14px 16px; margin: 12px 0;
+    font-size: 0.88rem; line-height: 1.75;
+  }
+  .point-box .point-title {
+    font-weight: 800; color: #009e7a; margin-bottom: 6px;
+    font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+  }
+
+  /* WARN BOX */
+  .warn-box {
+    background: linear-gradient(135deg, #fff5f0, #fff8f5);
+    border-left: 4px solid var(--accent2);
+    border-radius: 0 12px 12px 0; padding: 14px 16px; margin: 12px 0;
+    font-size: 0.88rem; line-height: 1.75;
+  }
+  .warn-box .warn-title {
+    font-weight: 800; color: var(--accent2); margin-bottom: 6px;
+    font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+  }
+
+  /* INFO BOX (yellow) */
+  .info-box {
+    background: linear-gradient(135deg, #fffbea, #fffdf0);
+    border-left: 4px solid #f0b429;
+    border-radius: 0 12px 12px 0; padding: 14px 16px; margin: 12px 0;
+    font-size: 0.88rem; line-height: 1.75;
+  }
+  .info-box .info-title {
+    font-weight: 800; color: #c8860a; margin-bottom: 6px;
+    font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+  }
+
+  /* QUIZ */
+  .quiz-card {
+    background: white; border-radius: 18px; padding: 20px; margin: 16px 0;
+    box-shadow: var(--shadow); border: 2px solid #e0e8f8;
+    animation: fadeInUp 0.4s ease;
+  }
+  .quiz-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .quiz-badge {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white; border-radius: 20px; padding: 4px 12px;
+    font-size: 0.75rem; font-weight: 800;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .quiz-q { font-weight: 700; font-size: 0.95rem; line-height: 1.65; color: var(--text); margin-bottom: 14px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--quiz-bg); border: 2px solid #e0e8f8; border-radius: 12px;
+    padding: 12px 14px; cursor: pointer; transition: all 0.2s;
+    font-size: 0.88rem; font-weight: 500; text-align: left; width: 100%; color: var(--text);
+  }
+  .quiz-option:hover:not([disabled]) { border-color: var(--primary); background: #f0f6ff; transform: translateX(3px); }
+  .quiz-option.correct { background: #e6fff5; border-color: var(--correct); color: #007a5a; }
+  .quiz-option.wrong { background: #fff0f3; border-color: var(--wrong); color: #c0002a; }
+  .quiz-option .opt-mark {
+    width: 24px; height: 24px; border-radius: 50%; background: #e0e8f8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 800; flex-shrink: 0; transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .quiz-option.correct .opt-mark { background: var(--correct); color: white; }
+  .quiz-option.wrong .opt-mark { background: var(--wrong); color: white; }
+  .quiz-feedback {
+    display: none; margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    font-size: 0.88rem; line-height: 1.7; font-weight: 500;
+    animation: fadeInUp 0.3s ease;
+  }
+  .quiz-feedback.correct { background: #e6fff5; color: #007a5a; border-left: 3px solid var(--correct); }
+  .quiz-feedback.wrong { background: #fff0f3; color: #c0002a; border-left: 3px solid var(--wrong); }
+  .quiz-feedback.show { display: block; }
+
+  /* TRUE/FALSE */
+  .tf-options { display: flex; gap: 10px; margin-top: 10px; }
+  .tf-btn {
+    flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #e0e8f8;
+    background: var(--quiz-bg); font-size: 0.95rem; font-weight: 800;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif; color: var(--text);
+  }
+  .tf-btn:hover:not([disabled]) { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .tf-btn.correct { background: #e6fff5; border-color: var(--correct); color: #007a5a; }
+  .tf-btn.wrong { background: #fff0f3; border-color: var(--wrong); color: #c0002a; }
+
+  /* SCORE PANEL */
+  .score-panel {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white; border-radius: 18px; padding: 24px; margin: 24px 0;
+    text-align: center; box-shadow: var(--shadow-lg); display: none;
+    animation: fadeInUp 0.5s ease;
+  }
+  .score-panel.show { display: block; }
+  .score-panel h3 { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+  .score-big { font-size: 3rem; font-weight: 900; font-family: 'M PLUS Rounded 1c', sans-serif; line-height: 1; }
+  .score-msg { opacity: 0.9; margin-top: 10px; font-size: 0.9rem; line-height: 1.6; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  strong { color: var(--primary); }
+  em { color: var(--accent2); font-style: normal; font-weight: 700; }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%; border-collapse: collapse; margin: 14px 0;
+    background: white; border-radius: 12px; overflow: hidden;
+    box-shadow: var(--shadow); font-size: 0.85rem;
+  }
+  .compare-table th {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white; padding: 10px 12px; font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800; text-align: left;
+  }
+  .compare-table td { padding: 9px 12px; border-bottom: 1px solid #e8f0fa; vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: #f8faff; }
+
+  .back-btn {
+    display: block; text-align: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white; padding: 14px; border-radius: 14px;
+    font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 800;
+    font-size: 0.95rem; text-decoration: none; margin-top: 32px;
+    box-shadow: var(--shadow); transition: transform 0.2s;
+  }
+  .back-btn:hover { transform: translateY(-2px); }
+
+  /* TAG CHIP */
+  .chip {
+    display: inline-block;
+    background: #e8f4ff;
+    color: var(--primary);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 2px 2px;
+  }
+  .chip.green { background: #e6fff5; color: #007a5a; }
+  .chip.orange { background: #fff5f0; color: #c0440a; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <a class="header-back" href="sonobo_lecture.html">←</a>
+  <svg class="header-logo" viewBox="0 0 80 80" fill="none">
+    <circle cx="40" cy="40" r="38" fill="white" fill-opacity="0.15"/>
+    <ellipse cx="40" cy="48" rx="22" ry="14" fill="white" fill-opacity="0.9"/>
+    <circle cx="40" cy="32" r="14" fill="white"/>
+    <circle cx="35" cy="29" r="3.5" fill="#1a6fd4"/>
+    <circle cx="45" cy="29" r="3.5" fill="#1a6fd4"/>
+    <path d="M34 37 Q40 42 46 37" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <rect x="18" y="56" width="44" height="10" rx="5" fill="white" fill-opacity="0.7"/>
+    <rect x="25" y="60" width="8" height="4" rx="2" fill="#1a6fd4"/>
+    <rect x="36" y="60" width="8" height="4" rx="2" fill="#1a6fd4"/>
+    <rect x="47" y="60" width="8" height="4" rx="2" fill="#1a6fd4"/>
+  </svg>
+  <div class="header-title">
+    <h1>8. 組織のうつり方の違い</h1>
+    <p>エコーの輝度表現をマスターしよう</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap">
+    <span class="progress-bar-label">進捗</span>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <span class="progress-bar-count" id="progressCount">0 / 12</span>
+  </div>
+
+  <!-- INTRO -->
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      こんにちは！今日のテーマは<strong>「組織のうつり方の違い」</strong>だよ！ 🎉<br><br>
+      エコー画像では、組織によって見え方（輝度・明るさ）が違うんだ。<br>
+      これを正しく読み取れると、嚢胞なのか腫瘍なのか、判断の手がかりになるよ。
+    </div>
+  </div>
+
+  <!-- 超重要前提 -->
+  <div class="info-box">
+    <div class="info-title">💡 最重要前提：エコーの輝度は「相対的」</div>
+    エコー画像の明るさ（輝度）は、<strong>反射の強さで決まる</strong>。でも！「この組織は常にこの明るさ」という<em>絶対値はない</em>。<br><br>
+    つまり、すべての輝度表現（高エコー・低エコーなど）は、<strong>周囲組織との比較</strong>と<strong>装置の設定（ゲイン・TGCなど）</strong>に依存するんだ。<br>
+    ゲインが高すぎると何でも白く見えてしまうし、低すぎると暗く見える。<em>まず設定を適正化することが大前提！</em>
+  </div>
+
+  <!-- エコースケール図 -->
+  <div class="echo-scale">
+    <div class="echo-scale-title">📊 エコー輝度のスケール（イメージ）</div>
+    <div class="echo-gradient-bar"></div>
+    <div class="echo-labels">
+      <span style="color:#222">◀ 無エコー<br><small style="color:#666">（黒）</small></span>
+      <span style="color:#5a7ab0; text-align:center">低エコー<br><small style="color:#666">（暗い）</small></span>
+      <span style="color:#1a6fd4; text-align:center">等エコー<br><small style="color:#666">（同じ）</small></span>
+      <span style="color:#a0c0e8; text-align:right">高エコー<br><small style="color:#666">（明るい）</small></span>
+      <span style="color:#888; text-align:right">高輝度▶<br><small style="color:#666">（白）</small></span>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">今日学ぶことを教えて！</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      今日はこの9つの表現を学ぶよ！<br><br>
+      <strong>輝度に関する表現：</strong>無エコー・高エコー・低エコー・等エコー・混在エコー<br>
+      <strong>均一性に関する表現：</strong>均質・不均質<br>
+      <strong>性状に関する表現：</strong>実質性・嚢胞性<br><br>
+      どれも<em>周囲との比較で成り立つ相対的な表現</em>だから、その大前提を忘れずにね！
+    </div>
+  </div>
+
+  <!-- ===== 無エコー ===== -->
+  <div class="section-divider" id="sec1">
+    <span class="sec-icon">⬛</span>
+    <div>
+      <div>① 無エコー（Anechoic）</div>
+      <div class="sec-sub">内部エコーがほぼなく、黒く見える</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">「無エコー」ってどういう状態？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      無エコーは、<strong>超音波がほとんど反射されずに素通りする</strong>状態！だから画面が真っ黒に見えるんだ。<br><br>
+      典型例は<em>均一な液体（水・尿・胆汁など）</em>。水は超音波をほとんど反射しないからね。
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: #000000;">無</div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#1a2540">⬛ 無エコー（Anechoic）</div>
+      エコーがほぼ返ってこない状態。画面が<strong>黒く</strong>見える。<br>
+      <span class="chip">典型例</span> 嚢胞・血液（液体成分）・水・胆汁・尿
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 無エコーの後ろに注目！「後方エコー増強」</div>
+    無エコー構造（液体）の<strong>背側（後ろ側）</strong>では、液体が超音波を吸収しにくいため、背後の組織が<em>周囲より明るく見える（後方エコー増強）</em>！<br>
+    これが嚢胞性病変の重要な根拠になるよ。嚢胞＝「無エコー＋後方増強」がセットで揃うことが多い。
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 落とし穴：ゲインが高すぎると崩れる！</div>
+    ゲインやTGCの設定が高すぎると、本来は無エコーの部分に<strong>偽のエコーが出てしまう（スラッジのように見える）</strong>ことがあるよ。<br>
+    必ず<em>ゲイン・TGCを先に適正化</em>してから判断しよう！
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-card" id="quiz1">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 1</span></div>
+    <div class="quiz-q">無エコー（Anechoic）の典型例として最も適切なものはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,false,'A')"><span class="opt-mark">A</span> 骨皮質</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,false,'B')"><span class="opt-mark">B</span> 筋肉</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,true,'C')"><span class="opt-mark">C</span> 単純嚢胞の内部（液体）</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz1',this,false,'D')"><span class="opt-mark">D</span> 石灰化</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz1-fb-correct">🎉 正解！ 単純嚢胞の内部（液体）は超音波をほとんど反射しないため、無エコーになる。後方増強も確認しよう！</div>
+    <div class="quiz-feedback wrong" id="quiz1-fb-wrong">💡 正解は「単純嚢胞の内部（液体）」。骨皮質・石灰化は高エコー、筋肉は低エコーに見えやすいよ。</div>
+  </div>
+
+  <!-- ===== 高エコー ===== -->
+  <div class="section-divider" id="sec2">
+    <span class="sec-icon">🔆</span>
+    <div>
+      <div>② 高エコー（Hyperechoic）</div>
+      <div class="sec-sub">周囲より白く（明るく）見える</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">高エコーはどんなものが当てはまるの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      高エコーは<strong>超音波の反射が強くて、画面が白く明るく見える</strong>状態！<br><br>
+      繰り返しになるけど、エコーの明るさには「物質固有の絶対値はない」よ。<br>
+      でも一般に<em>石灰化・骨皮質・線維化・脂肪</em>などは強く反射するので、周囲組織より高エコーになりやすいんだ。
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: #e8f4ff; border-color:#aaccee;">
+      <span style="color:#1a2540; font-size:1.2rem;">☀️</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#1a6fd4">☀️ 高エコー（Hyperechoic）</div>
+      周囲より<strong>明るく白く</strong>見える。反射が強い。<br>
+      <span class="chip">典型例</span> 石灰化・骨皮質・線維化・脂肪組織・胆石・腎結石
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 高エコー＋音響陰影（Acoustic Shadow）に注目！</div>
+    高エコーの背側（後ろ）に<strong>真っ黒な影（音響陰影）</strong>が出ていたら、<em>結石・骨・石灰化</em>を強く疑おう！<br>
+    超音波が遮られてしまって、その後ろが暗くなるんだ。
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 角度依存に注意！</div>
+    <strong>鏡面反射</strong>（角度によって強く反射する現象）で、プローブの角度が変わると高エコーが消えたり出たりすることがある。<br>
+    「一方向から見て高エコーだった」→ <em>プローブを回転・ロック操作</em>して再評価しよう！
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-card" id="quiz2">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 2</span></div>
+    <div class="quiz-q">高エコー構造の背側に「真っ黒な影（音響陰影）」が見えた場合、何を疑う？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,false,'A')"><span class="opt-mark">A</span> 嚢胞</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,true,'B')"><span class="opt-mark">B</span> 結石・骨・石灰化</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,false,'C')"><span class="opt-mark">C</span> 筋肉</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz2',this,false,'D')"><span class="opt-mark">D</span> 血液</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz2-fb-correct">🎉 正解！ 高エコー＋音響陰影＝結石・骨・石灰化を疑う典型パターン。覚えておこう！</div>
+    <div class="quiz-feedback wrong" id="quiz2-fb-wrong">💡 正解は「結石・骨・石灰化」。嚢胞は無エコー＋後方増強だよ。</div>
+  </div>
+
+  <!-- ===== 低エコー ===== -->
+  <div class="section-divider" id="sec3">
+    <span class="sec-icon">🔅</span>
+    <div>
+      <div>③ 低エコー（Hypoechoic）</div>
+      <div class="sec-sub">周囲より暗く見える</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">低エコーって、どういう状態？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      低エコーは<strong>周囲の組織より暗く見える</strong>状態！<br><br>
+      反射が弱い・散乱が多い・設定の問題など、<em>複合的な原因</em>で起こり得るよ。<br><br>
+      例えば、筋肉は周囲の脂肪より反射が弱いので、相対的に低エコーに見えやすい。<br>
+      でも「低エコー＝必ず〇〇」とは言えないから、<em>周囲との比較が大事</em>！
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: #2a3a5a;">
+      <span style="color:#a0b0d0; font-size:0.7rem;">暗</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#2a4a7a">🔅 低エコー（Hypoechoic）</div>
+      周囲より<strong>暗く</strong>見える。反射が弱い。<br>
+      <span class="chip">典型例</span> 筋肉（脂肪と比較）・悪性腫瘍の一部・リンパ節・浮腫組織
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 深部が暗いだけかもしれない！</div>
+    深い位置にある組織が低エコーに見えるとき、それが「病変だから」ではなく、<strong>超音波の減衰（深部になるほど信号が弱くなる現象）</strong>のせいかもしれない。<br>
+    <em>TGC（時間利得補正）・周波数・深度</em>の設定を確認してから判断しよう！
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 等エコー背景に紛れやすい！</div>
+    低エコー病変は、周囲が同じくらいの明るさだと<strong>境界が分かりにくく見落としやすい</strong>。<br>
+    境界をしっかり追跡することが重要だよ。
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-card" id="quiz3">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 3</span></div>
+    <div class="quiz-q">深部の組織が低エコーに見えたとき、まず確認すべきことは？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,false,'A')"><span class="opt-mark">A</span> すぐに病変と判断して記録する</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,true,'B')"><span class="opt-mark">B</span> TGC・周波数・深度の設定を確認して適正化する</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,false,'C')"><span class="opt-mark">C</span> プローブを交換する</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz3',this,false,'D')"><span class="opt-mark">D</span> カラードプラに切り替える</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz3-fb-correct">🎉 正解！ 深部低エコーは単なる減衰の可能性がある。TGC・周波数・深度を見直してから判断しよう！</div>
+    <div class="quiz-feedback wrong" id="quiz3-fb-wrong">💡 正解は「TGC・周波数・深度の設定を確認」。設定不良が原因の可能性があるよ。</div>
+  </div>
+
+  <!-- ===== 等エコー ===== -->
+  <div class="section-divider" id="sec4">
+    <span class="sec-icon">🟰</span>
+    <div>
+      <div>④ 等エコー（Isoechoic）</div>
+      <div class="sec-sub">周囲と同程度で、輪郭が分かりにくい</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">等エコーって、周囲と同じに見えるってこと？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソnobobo君</div>
+      <div class="speaker">🤖 ソノボ君</div>
+      その通り！等エコーは<strong>周囲の組織と同程度の明るさ</strong>に見えるから、境界がはっきりせず<em>"見えにくい病変"</em>の代表格なんだ。<br><br>
+      等エコーは「設定や比較対象が変われば、見え方も変わる」相対的な表現。難しいね…💦
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: linear-gradient(135deg, #5a7ab0, #7a9ad0);">
+      <span style="color:white; font-size:0.7rem;">＝</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#1a4a8a">🟰 等エコー（Isoechoic）</div>
+      周囲と<strong>同程度の明るさ</strong>。輪郭が不明瞭で見落としやすい。<br>
+      <span class="chip orange">注意</span> "見えにくい病変"の代表。断面変更やドプラ併用が有用。
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 等エコー病変を見つけるコツ</div>
+    ・<strong>断面を変える（回転・スライド）</strong>→ 角度によって境界が出ることがある<br>
+    ・<strong>フォーカス位置を調整</strong>する<br>
+    ・<strong>カラードプラを使う</strong>→ 血流の有無で存在を確認できる<br>
+    ただし、カラードプラは設定が悪いと偽像が出るので注意！
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-card" id="quiz4">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 4</span></div>
+    <div class="quiz-q">等エコー（Isoechoic）の病変を検出するために有効なアプローチはどれ？（最も適切なもの）</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,false,'A')"><span class="opt-mark">A</span> ゲインをどんどん上げる</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,true,'B')"><span class="opt-mark">B</span> 断面を変える・フォーカス位置を調整する・カラードプラを使う</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,false,'C')"><span class="opt-mark">C</span> 周波数を最小にする</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz4',this,false,'D')"><span class="opt-mark">D</span> 深度を最大にする</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz4-fb-correct">🎉 正解！ 断面変更・フォーカス調整・ドプラ併用が等エコー病変の検出に有効だよ！</div>
+    <div class="quiz-feedback wrong" id="quiz4-fb-wrong">💡 正解は「断面を変える・フォーカス位置を調整する・カラードプラを使う」。ゲインを闇雲に上げると設定が崩れるよ。</div>
+  </div>
+
+  <!-- ===== 混在エコー ===== -->
+  <div class="section-divider" id="sec5">
+    <span class="sec-icon">🎲</span>
+    <div>
+      <div>⑤ 混在エコー（Mixed / Heterogeneous echo）</div>
+      <div class="sec-sub">高低が混ざり、まだらに見える</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">混在エコーって、どんな状態？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      混在エコーは、<strong>高エコーと低エコーが混ざり合って、まだら模様に見える</strong>状態！<br><br>
+      例えば「液体＋固形成分が混在する腫瘤」「壊死・出血・線維化が混ざった組織」などで見られるよ。<br><br>
+      ただし！<em>装置の設定（ゲイン・TGC）が悪くて人工的にまだらに見える</em>こともある。まず設定を適正化してから！
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: linear-gradient(135deg, #000 30%, #fff 70%); background-size: 10px 10px;">
+      <span style="color:#fff; text-shadow:0 1px 3px #000; font-size:0.7rem;">混</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#4a3060">🎲 混在エコー（Mixed echo）</div>
+      高低が<strong>混ざってまだら</strong>に見える。<br>
+      <span class="chip">典型例</span> 液体＋固形混在腫瘤・壊死・出血・線維化の混在
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 体位や圧迫で動くかを確認！</div>
+    体の位置を変えたり、プローブで軽く圧迫したりして<strong>内容物が動くなら液体成分の存在を示唆</strong>する。<br>
+    まず設定（ゲイン・TGC）を整えてから、本当にまだらなのかを確認しよう。
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-card" id="quiz5">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 5</span></div>
+    <div class="quiz-q">「混在エコー」と判断する前に、まず除外しなければならないものは？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,false,'A')"><span class="opt-mark">A</span> 患者の体格</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,true,'B')"><span class="opt-mark">B</span> ゲイン・TGCの設定不良による人工的なまだら</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,false,'C')"><span class="opt-mark">C</span> プローブの種類</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz5',this,false,'D')"><span class="opt-mark">D</span> 患者の呼吸状態</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz5-fb-correct">🎉 正解！ ゲイン・TGCの不適切な設定が「人工的なまだら」を作り出すことがある。設定適正化が先！</div>
+    <div class="quiz-feedback wrong" id="quiz5-fb-wrong">💡 正解は「ゲイン・TGCの設定不良による人工的なまだら」。装置の設定が原因のことがあるよ！</div>
+  </div>
+
+  <!-- ===== 均質 ===== -->
+  <div class="section-divider" id="sec6">
+    <span class="sec-icon">🟦</span>
+    <div>
+      <div>⑥ 均質（Homogeneous）</div>
+      <div class="sec-sub">内部のエコーパターンが揃っている</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">均質って、内部が均一ってこと？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      その通り！均質は<strong>内部のエコーパターンが揃っていて、ムラがない</strong>状態のことだよ。<br><br>
+      ただし「均質に見える」かどうかは、<em>装置の設定が適正化されていること</em>が前提。<br>
+      設定が悪いと、実は均質な組織がムラムラに見えてしまうこともある。
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: linear-gradient(135deg, #5a7ab0 0%, #5a7ab0 100%);">
+      <span style="color:white; font-size:0.65rem;">均一</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#1a4a8a">🟦 均質（Homogeneous）</div>
+      内部エコーが<strong>均一でムラがない</strong>。<br>
+      <span class="chip">例</span> 正常な甲状腺・正常な肝臓（設定が適切な場合）
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 均質でも注意！</div>
+    ・均質なのに<strong>深部だけ暗い</strong>→ TGC（減衰補正）不足の可能性を考えよう<br>
+    ・均質かつ<strong>無エコー</strong>→ 嚢胞性病変の支持材料になる（後方増強も確認）
+  </div>
+
+  <!-- Quiz 6 TF -->
+  <div class="quiz-card" id="quiz6">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 6 ○✕</span></div>
+    <div class="quiz-q">「均質に見える」ということは、装置の設定に関係なく組織の性状を正確に反映している」</div>
+    <div class="tf-options">
+      <button class="tf-btn" onclick="answerTF('quiz6',this,false)">○ 正しい</button>
+      <button class="tf-btn" onclick="answerTF('quiz6',this,true)">✕ 誤り</button>
+    </div>
+    <div class="quiz-feedback wrong" id="quiz6-fb-wrong">💡 正解は「✕ 誤り」。均質かどうかは装置の設定（ゲイン・TGCなど）に依存する！設定適正化が前提。</div>
+    <div class="quiz-feedback correct" id="quiz6-fb-correct">🎉 正解！ 均質性の評価も装置設定の適正化が大前提だよ。</div>
+  </div>
+
+  <!-- ===== 不均質 ===== -->
+  <div class="section-divider" id="sec7">
+    <span class="sec-icon">🟫</span>
+    <div>
+      <div>⑦ 不均質（Heterogeneous）</div>
+      <div class="sec-sub">内部が不揃いで、粗い・斑状に見える</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">不均質ってどういうときに見られるの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      不均質は<strong>内部のエコーパターンが不揃いで、粗く・斑状に見える</strong>状態！<br><br>
+      炎症・線維化・脂肪浸潤・腫瘍内部など様々な原因があるよ。<br>
+      ただし不均質は単独では<em>非特異的</em>（原因を絞り込めない）から、他の所見と合わせて評価することが大事。
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: repeating-linear-gradient(45deg, #2a3a5a, #2a3a5a 4px, #8aadcc 4px, #8aadcc 8px);">
+      <span style="color:white; font-size:0.65rem; text-shadow:0 1px 3px #000;">斑</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#3a4a6a">🟫 不均質（Heterogeneous）</div>
+      内部が<strong>不揃いで斑状・粗い</strong>印象。<br>
+      <span class="chip">例</span> 慢性肝炎（脂肪肝・線維化）・甲状腺炎・腫瘤内部
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 不均質の評価手順</div>
+    ① まず<strong>プリセット・ゲイン・TGC</strong>を揃えて、設定不良でないか確認<br>
+    ② 同じ設定で再現性があるか確認<br>
+    ③ <strong>ドプラ（血流評価）</strong>を追加すると評価の助けになる
+  </div>
+
+  <!-- Quiz 7 -->
+  <div class="quiz-card" id="quiz7">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 7</span></div>
+    <div class="quiz-q">「不均質（Heterogeneous）」について正しい記述はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,false,'A')"><span class="opt-mark">A</span> 不均質＝必ず悪性腫瘍である</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,false,'B')"><span class="opt-mark">B</span> 不均質は装置の設定に関係なく判断できる</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,true,'C')"><span class="opt-mark">C</span> 不均質は非特異的であり、ゲイン・TGCの設定適正化が前提</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz7',this,false,'D')"><span class="opt-mark">D</span> 不均質が見えたらすぐに嚢胞と診断できる</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz7-fb-correct">🎉 正解！ 不均質は原因が多様で非特異的。設定適正化→ドプラ追加→他所見との統合が重要！</div>
+    <div class="quiz-feedback wrong" id="quiz7-fb-wrong">💡 正解は「非特異的であり、ゲイン・TGCの設定適正化が前提」。不均質だけでは診断できないよ。</div>
+  </div>
+
+  <!-- ===== 実質性 ===== -->
+  <div class="section-divider" id="sec8">
+    <span class="sec-icon">🧱</span>
+    <div>
+      <div>⑧ 実質性（Solid）</div>
+      <div class="sec-sub">固形（または固形成分が主体）の性状</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">実質性って、嚢胞性と何が違うの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      実質性は<strong>液体ではなく、固形（または固形成分主体）の性状</strong>のことだよ！<br><br>
+      エコー的には…<br>
+      ・内部エコーが一定以上<strong>ある</strong>（無エコーではない）<br>
+      ・圧迫しても<strong>形が保たれる</strong><br>
+      ・後方エコー増強が<em>乏しい</em>か、<em>音響陰影が出る</em>場合もある<br><br>
+      嚢胞性（液体主体）との違いをしっかり押さえよう！
+    </div>
+  </div>
+
+  <table class="compare-table">
+    <tr>
+      <th>特徴</th>
+      <th>実質性（Solid）</th>
+      <th>嚢胞性（Cystic）</th>
+    </tr>
+    <tr>
+      <td>内部エコー</td>
+      <td>一定以上あり</td>
+      <td>無エコー（黒）が主体</td>
+    </tr>
+    <tr>
+      <td>後方エコー</td>
+      <td>増強乏しい / 陰影が出ることも</td>
+      <td>後方増強（明るくなる）</td>
+    </tr>
+    <tr>
+      <td>圧迫時</td>
+      <td>形が保たれる</td>
+      <td>つぶれやすい・変形する</td>
+    </tr>
+    <tr>
+      <td>典型例</td>
+      <td>腫瘤・筋肉・実質臓器</td>
+      <td>単純嚢胞・胆嚢・膀胱</td>
+    </tr>
+  </table>
+
+  <div class="warn-box">
+    <div class="warn-title">⚠️ ゲイン過多に注意！</div>
+    ゲインが高すぎると、本来は無エコーの液体部分に<strong>エコーが出て「実質性に見える」</strong>ことがある。<br>
+    「実質性に見える濁り」→ まず<em>ゲイン・TGCを適正化</em>してから判断しよう！
+  </div>
+
+  <!-- Quiz 8 -->
+  <div class="quiz-card" id="quiz8">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 8</span></div>
+    <div class="quiz-q">実質性（Solid）の病変に特徴的なエコー所見はどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz8',this,false,'A')"><span class="opt-mark">A</span> 無エコー＋後方エコー増強</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz8',this,true,'B')"><span class="opt-mark">B</span> 内部エコーがあり、後方増強が乏しい</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz8',this,false,'C')"><span class="opt-mark">C</span> 内部に音響陰影のみ</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz8',this,false,'D')"><span class="opt-mark">D</span> 完全な無エコー</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz8-fb-correct">🎉 正解！ 実質性は「内部エコーあり＋後方増強乏しい」が特徴。嚢胞性（無エコー＋後方増強）と対比して覚えよう！</div>
+    <div class="quiz-feedback wrong" id="quiz8-fb-wrong">💡 正解は「内部エコーがあり、後方増強が乏しい」。無エコー＋後方増強は嚢胞性の特徴だよ。</div>
+  </div>
+
+  <!-- ===== 嚢胞性 ===== -->
+  <div class="section-divider" id="sec9">
+    <span class="sec-icon">💧</span>
+    <div>
+      <div>⑨ 嚢胞性（Cystic）</div>
+      <div class="sec-sub">内部が液体主体：無エコー＋後方増強が典型</div>
+    </div>
+  </div>
+
+  <div class="user-bubble-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">嚢胞性ってどうやって見分けるの？</div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      嚢胞性の典型パターンは<strong>「無エコー＋後方エコー増強」</strong>のセット！<br><br>
+      これは、液体が超音波を吸収しにくいため、液体の向こう側が<em>周囲より明るく見える（後方エコー増強：posterior acoustic enhancement）</em>という原理から来ているんだ。<br><br>
+      ただし「無エコーだけ」で嚢胞と決めないで！<strong>増強・辺縁・可動性</strong>もセットで評価することが大切だよ。
+    </div>
+  </div>
+
+  <div class="echo-card">
+    <div class="echo-swatch" style="background: linear-gradient(180deg, #000 0%, #000 55%, #4a8acc 55%, #6ab0ff 100%);">
+      <span style="color:white; font-size:0.6rem; text-shadow:0 1px 3px #000;">後方<br>増強</span>
+    </div>
+    <div class="echo-card-body">
+      <div class="echo-card-name" style="color:#1a6fd4">💧 嚢胞性（Cystic）</div>
+      内部が<strong>液体主体</strong>。<em>無エコー＋後方エコー増強</em>が典型。<br>
+      <span class="chip green">典型例</span> 単純性腎嚢胞・卵巣嚢腫・ガングリオン・膀胱
+    </div>
+  </div>
+
+  <div class="point-box">
+    <div class="point-title">✅ 嚢胞性の評価ポイント：3点セット！</div>
+    嚢胞性かどうかは<strong>以下3点をセットで評価</strong>しよう：<br>
+    ① <em>無エコー</em>：内部が黒いか<br>
+    ② <em>後方エコー増強</em>：背側が周囲より明るいか<br>
+    ③ <em>辺縁・可動性</em>：壁はきれいか・圧迫で形が変わるか<br><br>
+    針穿刺など侵襲的判断が必要なときは、表示条件を揃えた「確からしさ」が重要！
+  </div>
+
+  <!-- Quiz 9 -->
+  <div class="quiz-card" id="quiz9">
+    <div class="quiz-header"><span class="quiz-badge">クイズ 9</span></div>
+    <div class="quiz-q">嚢胞性病変の典型的なエコー所見の組み合わせはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('quiz9',this,false,'A')"><span class="opt-mark">A</span> 高エコー＋音響陰影</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz9',this,true,'B')"><span class="opt-mark">B</span> 無エコー＋後方エコー増強</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz9',this,false,'C')"><span class="opt-mark">C</span> 低エコー＋内部エコー均質</button>
+      <button class="quiz-option" onclick="answerQuiz('quiz9',this,false,'D')"><span class="opt-mark">D</span> 混在エコー＋後方増強なし</button>
+    </div>
+    <div class="quiz-feedback correct" id="quiz9-fb-correct">🎉 正解！ 嚢胞性病変＝「無エコー＋後方エコー増強」がセット。これに辺縁・可動性も加えて評価しよう！</div>
+    <div class="quiz-feedback wrong" id="quiz9-fb-wrong">💡 正解は「無エコー＋後方エコー増強」。高エコー＋音響陰影は結石や骨の特徴だよ。</div>
+  </div>
+
+  <!-- ===== 総合クイズ ===== -->
+  <div class="section-divider">
+    <span class="sec-icon">🏆</span>
+    <div>
+      <div>総合クイズ</div>
+      <div class="sec-sub">すべての用語を横断して確認！</div>
+    </div>
+  </div>
+
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      最後に総合クイズ！全9種類の用語を横断して確認するよ 💪 頑張って！
+    </div>
+  </div>
+
+  <!-- FQ1 -->
+  <div class="quiz-card" id="fq1">
+    <div class="quiz-header"><span class="quiz-badge">総合 1</span></div>
+    <div class="quiz-q">エコー輝度の表現（高エコー・低エコーなど）が「相対的」と言われる理由は？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,false,'A')"><span class="opt-mark">A</span> 組織には固有の絶対的な輝度値が定められているから</button>
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,true,'B')"><span class="opt-mark">B</span> 明るさは反射強度で決まり、周囲組織との比較と装置設定に依存するから</button>
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,false,'C')"><span class="opt-mark">C</span> 輝度は患者の体格で決まるから</button>
+      <button class="quiz-option" onclick="answerQuiz('fq1',this,false,'D')"><span class="opt-mark">D</span> プローブの種類だけで輝度が変わるから</button>
+    </div>
+    <div class="quiz-feedback correct" id="fq1-fb-correct">🎉 正解！ 輝度は反射強度で決まり、周囲組織との比較と装置設定に左右される。これがすべての基本前提！</div>
+    <div class="quiz-feedback wrong" id="fq1-fb-wrong">💡 正解は「周囲組織との比較と装置設定に依存するから」。エコーには絶対値の輝度はないよ。</div>
+  </div>
+
+  <!-- FQ2 -->
+  <div class="quiz-card" id="fq2">
+    <div class="quiz-header"><span class="quiz-badge">総合 2</span></div>
+    <div class="quiz-q">次の組み合わせで正しいものはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,false,'A')"><span class="opt-mark">A</span> 無エコー＋音響陰影 → 嚢胞性</button>
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,false,'B')"><span class="opt-mark">B</span> 高エコー＋後方増強 → 結石</button>
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,true,'C')"><span class="opt-mark">C</span> 無エコー＋後方エコー増強 → 嚢胞性</button>
+      <button class="quiz-option" onclick="answerQuiz('fq2',this,false,'D')"><span class="opt-mark">D</span> 高エコー＋後方増強 → 嚢胞性</button>
+    </div>
+    <div class="quiz-feedback correct" id="fq2-fb-correct">🎉 正解！ 無エコー＋後方増強＝嚢胞性。高エコー＋音響陰影＝結石・骨。この対比は超重要！</div>
+    <div class="quiz-feedback wrong" id="fq2-fb-wrong">💡 正解は「無エコー＋後方エコー増強→嚢胞性」。高エコー＋音響陰影が結石・骨の典型だよ。</div>
+  </div>
+
+  <!-- FQ3 -->
+  <div class="quiz-card" id="fq3">
+    <div class="quiz-header"><span class="quiz-badge">総合 3</span></div>
+    <div class="quiz-q">「等エコー（Isoechoic）」病変の説明として正しいものはどれ？</div>
+    <div class="quiz-options">
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,false,'A')"><span class="opt-mark">A</span> 常に白く見えて目立つ</button>
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,true,'B')"><span class="opt-mark">B</span> 周囲と同程度の明るさで境界が不明瞭になりやすく、見落としやすい</button>
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,false,'C')"><span class="opt-mark">C</span> 必ず嚢胞性である</button>
+      <button class="quiz-option" onclick="answerQuiz('fq3',this,false,'D')"><span class="opt-mark">D</span> ドプラで評価する意味はない</button>
+    </div>
+    <div class="quiz-feedback correct" id="fq3-fb-correct">🎉 正解！ 等エコー病変は周囲と同程度の明るさで見えにくい。断面変更・フォーカス調整・ドプラが有効！</div>
+    <div class="quiz-feedback wrong" id="fq3-fb-wrong">💡 正解は「周囲と同程度の明るさで境界が不明瞭になりやすく見落としやすい」。ドプラが存在確認に役立つよ！</div>
+  </div>
+
+  <!-- Score Panel -->
+  <div class="score-panel" id="scorePanel">
+    <h3>🏆 セクション8 クイズ結果</h3>
+    <div class="score-big" id="scoreDisplay">0/12</div>
+    <div class="score-msg" id="scoreMsg">頑張ったね！</div>
+  </div>
+
+  <!-- WRAP UP -->
+  <div class="chat-bubble-wrap">
+    <img class="sonobo-avatar" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=sonobo&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01" alt="ソノボ君">
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      お疲れ様！「組織のうつり方の違い」のまとめだよ 🎉<br><br>
+      ✅ <strong>無エコー</strong>＝黒い（液体が典型）＋後方増強に注目<br>
+      ✅ <strong>高エコー</strong>＝白い（石灰化・骨）＋音響陰影に注目<br>
+      ✅ <strong>低エコー</strong>＝暗い（周囲比較）＋減衰も考慮<br>
+      ✅ <strong>等エコー</strong>＝周囲と同程度→見落とし注意！<br>
+      ✅ <strong>混在エコー</strong>＝まだら→設定適正化が先！<br>
+      ✅ <strong>均質</strong>＝内部均一・<strong>不均質</strong>＝内部不揃い<br>
+      ✅ <strong>実質性</strong>＝固形主体（内部エコーあり・後方増強乏）<br>
+      ✅ <strong>嚢胞性</strong>＝液体主体（無エコー＋後方増強）<br><br>
+      <em>すべての輝度表現は「装置設定の適正化が前提」の相対的な表現</em>だよ！この大前提を忘れないでね 💪
+    </div>
+  </div>
+
+  <a class="back-btn" href="sonobo_lecture.html">← 目次に戻る</a>
+
+</main>
+
+<script>
+  const quizIds = ['quiz1','quiz2','quiz3','quiz4','quiz5','quiz6','quiz7','quiz8','quiz9','fq1','fq2','fq3'];
+  const quizScores = {};
+  let answeredCount = 0;
+  let correctCount = 0;
+  const totalQuizzes = quizIds.length;
+
+  function updateProgress() {
+    const pct = (answeredCount / totalQuizzes * 100).toFixed(0);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = answeredCount + ' / ' + totalQuizzes;
+    if (answeredCount === totalQuizzes) {
+      const panel = document.getElementById('scorePanel');
+      panel.classList.add('show');
+      document.getElementById('scoreDisplay').textContent = correctCount + '/' + totalQuizzes;
+      let msg = '';
+      if (correctCount >= 11) msg = '完璧！全問正解！すごいね🎊';
+      else if (correctCount >= 9) msg = 'あと少し！もう一度見直してみよう👀';
+      else if (correctCount >= 7) msg = '半分以上正解！もう一周して定着させよう💪';
+      else msg = 'もう一度ゆっくり読んで、再チャレンジしてみよう📖';
+      document.getElementById('scoreMsg').textContent = msg;
+    }
+  }
+
+  function answerQuiz(quizId, btn, isCorrect, opt) {
+    if (quizScores[quizId] !== undefined) return;
+    quizScores[quizId] = isCorrect;
+    answeredCount++;
+    if (isCorrect) correctCount++;
+    const card = document.getElementById(quizId);
+    const allBtns = card.querySelectorAll('.quiz-option');
+    allBtns.forEach(b => { b.disabled = true; });
+    btn.classList.add(isCorrect ? 'correct' : 'wrong');
+    if (isCorrect) {
+      document.getElementById(quizId + '-fb-correct').classList.add('show');
+    } else {
+      document.getElementById(quizId + '-fb-wrong').classList.add('show');
+      allBtns.forEach(b => {
+        if (b.onclick && b.onclick.toString().includes(',true,')) {
+          b.classList.add('correct');
+        }
+      });
+    }
+    updateProgress();
+  }
+
+  function answerTF(quizId, btn, isCorrect) {
+    if (quizScores[quizId] !== undefined) return;
+    quizScores[quizId] = isCorrect;
+    answeredCount++;
+    if (isCorrect) correctCount++;
+    const card = document.getElementById(quizId);
+    card.querySelectorAll('.tf-btn').forEach(b => { b.disabled = true; });
+    btn.classList.add(isCorrect ? 'correct' : 'wrong');
+    document.getElementById(quizId + '-fb-' + (isCorrect ? 'correct' : 'wrong')).classList.add('show');
+    updateProgress();
+  }
+</script>
+</body>
+</html>
