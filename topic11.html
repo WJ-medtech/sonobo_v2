@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11. よくあるアーチファクト — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#1a6fd4;--primary-light:#4a9eff;--primary-dark:#0d4fa0;--accent:#00c8a0;--accent2:#ff6b35;--bg:#f0f6ff;--card:#ffffff;--text:#1a2540;--text-light:#5a6a8a;--shadow:0 4px 24px rgba(26,111,212,0.12);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .app-header{background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%);padding:16px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 20px rgba(0,0,0,0.2);position:sticky;top:0;z-index:100;}
+  .header-back{background:rgba(255,255,255,0.18);border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:1.2rem;transition:background 0.2s;flex-shrink:0;text-decoration:none;}
+  .header-back:hover{background:rgba(255,255,255,0.3);}
+  .header-logo{width:44px;height:44px;flex-shrink:0;}
+  .header-title{color:white;font-family:'M PLUS Rounded 1c',sans-serif;}
+  .header-title h1{font-size:1.1rem;font-weight:800;line-height:1.2;}
+  .header-title p{font-size:0.72rem;opacity:0.85;font-weight:400;}
+  .main{max-width:720px;margin:0 auto;padding:24px 16px 80px;}
+  .chat-bubble-wrap{display:flex;align-items:flex-end;gap:12px;margin-bottom:20px;animation:fadeInUp 0.4s ease;}
+  .sonobo-avatar{width:64px;height:64px;flex-shrink:0;filter:drop-shadow(0 4px 8px rgba(26,111,212,0.3));animation:bounce 3s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .chat-bubble{background:white;border-radius:20px 20px 20px 4px;padding:16px 20px;box-shadow:var(--shadow);flex:1;font-size:0.93rem;line-height:1.75;border-left:4px solid var(--primary);position:relative;}
+  .chat-bubble::before{content:'';position:absolute;left:-8px;bottom:16px;border:8px solid transparent;border-right-color:white;border-left:none;}
+  .chat-bubble .speaker{font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;color:var(--primary);font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+  .chat-bubble-wrap.user-wrap{flex-direction:row-reverse;}
+  .user-bubble{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border-radius:20px 20px 4px 20px;padding:14px 18px;box-shadow:var(--shadow);font-size:0.93rem;line-height:1.7;position:relative;max-width:85%;}
+  .user-bubble::before{content:'';position:absolute;right:-8px;bottom:16px;border:8px solid transparent;border-left-color:var(--primary);border-right:none;}
+  .user-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#ffd580,#ffaa00);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  .section-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:white;border-radius:18px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;animation:fadeInUp 0.4s ease;}
+  .section-header .section-icon{font-size:2.8rem;flex-shrink:0;}
+  .section-header h2{font-family:'M PLUS Rounded 1c',sans-serif;font-size:1.25rem;font-weight:800;line-height:1.3;}
+  .section-header p{font-size:0.78rem;opacity:0.85;margin-top:3px;}
+  .topic-card{background:white;border-radius:18px;padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow);border-top:4px solid var(--primary);animation:fadeInUp 0.4s ease;}
+  .topic-card h3{font-family:'M PLUS Rounded 1c',sans-serif;font-size:1.05rem;font-weight:800;color:var(--primary);margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .topic-card p{font-size:0.9rem;line-height:1.8;margin-bottom:10px;}
+  .topic-card ul{padding-left:1.2em;margin-bottom:10px;}
+  .topic-card ul li{font-size:0.9rem;line-height:1.75;margin-bottom:4px;}
+  .point-box{background:#f0faf6;border-left:4px solid var(--accent);border-radius:10px;padding:12px 16px;margin-top:12px;font-size:0.88rem;line-height:1.75;}
+  .point-box .point-title{font-weight:700;color:#00a87a;margin-bottom:6px;font-size:0.82rem;}
+  .warn-box{background:#fff8f0;border-left:4px solid var(--accent2);border-radius:10px;padding:12px 16px;margin-top:12px;font-size:0.88rem;line-height:1.75;}
+  .warn-box .warn-title{font-weight:700;color:var(--accent2);margin-bottom:6px;font-size:0.82rem;}
+  .tag{display:inline-block;background:#eef4ff;color:var(--primary);border-radius:6px;padding:2px 8px;font-size:0.78rem;font-weight:700;margin:2px 3px 2px 0;}
+  .quiz-block{background:#f4f8ff;border-radius:16px;padding:20px;margin-bottom:20px;border:2px solid #d0e4ff;animation:fadeInUp 0.4s ease;}
+  .quiz-block .quiz-label{font-family:'M PLUS Rounded 1c',sans-serif;font-size:0.78rem;font-weight:800;color:var(--primary);background:#d8eaff;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px;}
+  .quiz-block .quiz-q{font-size:0.93rem;font-weight:700;margin-bottom:14px;line-height:1.65;}
+  .quiz-choices{display:flex;flex-direction:column;gap:8px;}
+  .quiz-choice{background:white;border:2px solid #d0e0f8;border-radius:12px;padding:11px 15px;font-size:0.88rem;cursor:pointer;transition:all 0.18s;text-align:left;font-family:'Noto Sans JP',sans-serif;color:var(--text);}
+  .quiz-choice:hover{border-color:var(--primary);background:#eef4ff;}
+  .quiz-choice.correct{background:#e6fbf4;border-color:var(--accent);color:#007a58;font-weight:700;}
+  .quiz-choice.wrong{background:#fff0ed;border-color:#ff6b35;color:#cc3300;}
+  .quiz-choice.show-correct{background:#e6fbf4;border-color:var(--accent);}
+  .quiz-feedback{margin-top:12px;font-size:0.87rem;line-height:1.7;padding:10px 14px;border-radius:10px;display:none;}
+  .quiz-feedback.correct-fb{background:#e6fbf4;color:#007a58;display:block;}
+  .quiz-feedback.wrong-fb{background:#fff0ed;color:#cc3300;display:block;}
+  .divider{height:2px;background:linear-gradient(90deg,var(--primary-light),transparent);border-radius:2px;margin:28px 0;}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .summary-card{background:linear-gradient(135deg,#0d4fa0,#1a6fd4);color:white;border-radius:18px;padding:22px 24px;margin-bottom:24px;}
+  .summary-card h3{font-family:'M PLUS Rounded 1c',sans-serif;font-size:1rem;font-weight:800;margin-bottom:12px;}
+  .summary-card ul{padding-left:1.2em;}
+  .summary-card ul li{font-size:0.88rem;line-height:1.85;opacity:0.95;}
+  .pdf-ref{font-size:0.72rem;background:#e8f0fe;color:#1a6fd4;border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="sonobo_lecture.html" class="header-back">←</a>
+  <svg class="header-logo" viewBox="0 0 80 80" fill="none">
+    <circle cx="40" cy="40" r="38" fill="white" fill-opacity="0.15"/>
+    <ellipse cx="40" cy="44" rx="22" ry="18" fill="white" fill-opacity="0.9"/>
+    <circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/>
+    <circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/>
+    <path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M20 30 Q18 20 26 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M60 30 Q62 20 54 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  </svg>
+  <div class="header-title">
+    <h1>11. よくあるアーチファクト</h1>
+    <p>座学コース — ソノボ君と学ぶPOCUS基礎</p>
+  </div>
+</header>
+
+<main class="main">
+
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    今回は<strong>臨床でよく出会うアーチファクト6種類</strong>を学ぶよ！<br><br>
+    「アーチファクト＝邪魔もの」と思いがちだけど、実は<strong>「使える情報源」</strong>でもあるんだ。なぜ生じるかを理解すると、画像の読み方がグッと深まるよ📡
+  </div>
+</div>
+
+<div class="section-header">
+  <span class="section-icon">🌀</span>
+  <div>
+    <h2>よくあるアーチファクト 6種</h2>
+    <p>空気 / Mirroring / 後方エコー増強 / 音響陰影 / ミラーイメージ / twinkleサイン</p>
+  </div>
+</div>
+
+<!-- ① 空気アーチファクト -->
+<div class="chat-bubble-wrap user-wrap">
+  <div class="user-avatar">🙋</div>
+  <div class="user-bubble">「空気アーチファクト」って、肺エコーのときによく聞くやつですよね？</div>
+</div>
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    そう！肺エコーの核心だよ。空気との境界で超音波がほぼ全反射するから、肺は「見えない検査」じゃなくて<strong>「アーチファクトを読む検査」</strong>になるんだ👇
+  </div>
+</div>
+
+<div class="topic-card">
+  <h3>💨 ① 空気アーチファクト <span class="pdf-ref">PDF pp.58–61</span></h3>
+  <p><strong>一言で言うと：</strong>空気との境界は超音波をほぼ全反射するため、そこから先は本物の構造ではなく、多重反射やアーチファクトだらけになる。</p>
+  <p>超音波は空気と組織の境界（音響インピーダンスの差が非常に大きい）に当たると、ほぼすべてのエネルギーが反射されてしまう。<strong>空気の向こう側の情報は原理的に得られない。</strong></p>
+  <p>空気がある場所で見える像は「本物の構造」ではなく、多重反射（超音波が行き来を繰り返す）で生まれたアーチファクトがほとんど。代表的なものが：</p>
+  <ul>
+    <li><strong>Aライン</strong>：胸膜線の多重反射で生じる横縞状の高輝度線。正常な肺（空気で満たされている）で見られる</li>
+    <li><strong>Bライン</strong>：胸膜線から垂直に走る高輝度線。肺の間質に液体や炎症があるときのサイン</li>
+  </ul>
+  <div class="point-box">
+    <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+    ・肺は「見えない＝異常なし」ではなく、<strong>「アーチファクトのパターンを読む検査」</strong>。<br>
+    ・Aライン＝肺は空気で正常、Bライン＝液体や炎症のサイン<br>
+    ・気道周囲（air-mucosa interface）でもミラー像などのアーチファクトが出やすい<br>
+    ・「写らない＝異常なし」ではないので注意！
+  </div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-1</span>
+  <div class="quiz-q">正常な肺をエコーで見たとき、胸膜線より深部に横縞状に繰り返し見える高輝度線を何という？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-1')">① Bライン</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-1')">② Aライン</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-1')">③ Cライン</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-1')">④ twinkleサイン</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-1"></div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-2</span>
+  <div class="quiz-q">Bラインが見られるとき、それは何を示唆している？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-2')">① 肺が正常に空気で満たされている</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-2')">② 肺の間質に液体や炎症がある可能性（間質の液体貯留など）</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-2')">③ プローブが壊れている</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-2')">④ 骨が近くにある</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-2"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ② Mirroring -->
+<div class="chat-bubble-wrap user-wrap">
+  <div class="user-avatar">🙋</div>
+  <div class="user-bubble">「Mirroring」って、ミラーイメージと同じものですか？</div>
+</div>
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    鋭い質問！「Mirroring（ミラーリング）」は<strong>現象の物理的な原因</strong>、「ミラーイメージ」は<strong>その結果として見える偽像</strong>、という関係だよ。セットで理解しよう！
+  </div>
+</div>
+
+<div class="topic-card">
+  <h3>🪞 ② Mirroring（ミラーリング現象）<span class="pdf-ref">PDF pp.60–61</span></h3>
+  <p><strong>一言で言うと：</strong>強力な反射面（鏡のような構造）で超音波が「折り返され」、実物の反対側に重複した偽像が作られる現象。</p>
+  <p>強い反射体（横隔膜、胸膜、骨など）があると、超音波ビームは「反射面→ターゲット→反射面→プローブ」という経路を往復する。装置は<strong>この余分な経路分だけ深部に信号があったと勘違い</strong>し、実物と鏡映の偽像の両方を描出してしまう。</p>
+  <p>Mirroringは「なぜミラーイメージが起きるか」という物理的原因の説明。結果として画面に現れる偽像が「ミラーイメージ（mirror image artifact）」。</p>
+  <div class="warn-box">
+    <div class="warn-title">⚠️ 紛らわしいポイント</div>
+    横隔膜付近で肝臓を観察していると、横隔膜の上側（本来は肺の中）に「もう一つの肝臓みたいな像」が見えることがある。これが典型的なミラーイメージ！実際には存在しない偽像なので、断面や角度を変えて消えるか確認することが大切。
+  </div>
+  <div class="point-box">
+    <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+    ・肝臓や胸部で「左右対称っぽい像」「横隔膜の上に何かある」ように見えたら疑う<br>
+    ・<strong>断面を変えて像が消えればアーチファクト、消えなければ本物の可能性が高い</strong>
+  </div>
+</div>
+
+<!-- ③ ミラーイメージ -->
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    続けてミラーイメージそのもの（偽像としての結果）も整理しよう！
+  </div>
+</div>
+
+<div class="topic-card">
+  <h3>🔍 ③ ミラーイメージ（mirror image artifact）<span class="pdf-ref">PDF pp.60–61</span></h3>
+  <p><strong>一言で言うと：</strong>強反射面を鏡として、実像の対側に偽像が描出される現象。</p>
+  <p>ミラーリング現象の結果として画面に描出される「本物ではない像」。横隔膜を強反射面として肝臓の「もう一つの鏡像」が描かれるのが典型例。実在しない腫瘤・胸水と誤認する危険がある。</p>
+  <p>確認法：<strong>プローブの角度・断面を変えて像が消えるか確認する。</strong>本物の病変は角度を変えても消えない（または形が変わる）。アーチファクトは消える。</p>
+  <div class="point-box">
+    <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+    ・肺・横隔膜の組み合わせは最もミラーイメージが出やすい領域<br>
+    ・偽像を胸水・腫瘤と誤認しないよう、必ず断面変更で確認する<br>
+    ・<strong>「横隔膜の上の肝臓らしき像＝まずミラーイメージを疑う」</strong>を習慣に
+  </div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-3</span>
+  <div class="quiz-q">ミラーイメージアーチファクトが最も出やすい臓器の組み合わせはどれ？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-3')">① 膵臓と膀胱</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-3')">② 肝臓と横隔膜</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-3')">③ 胃と脾臓</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-3')">④ 胆嚢と総胆管</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-3"></div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-4</span>
+  <div class="quiz-q">ミラーイメージかどうかを確認するための最も基本的な操作はどれ？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-4')">① ゲインを最大にする</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-4')">② 深度を浅くする</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-4')">③ プローブの角度・断面を変えて像が消えるか確認する</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-4')">④ カラードプラに切り替える</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-4"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ④ 後方エコー増強 -->
+<div class="chat-bubble-wrap user-wrap">
+  <div class="user-avatar">🙋</div>
+  <div class="user-bubble">「後方エコー増強」って、液体の後ろが明るくなるやつですよね？</div>
+</div>
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    正解！液体はほとんど超音波を吸収しないから、その背側が相対的に「明るく」なるんだ。なぜそうなるのか、原理から理解しよう✨
+  </div>
+</div>
+
+<div class="topic-card">
+  <h3>✨ ④ 後方エコー増強（posterior acoustic enhancement）<span class="pdf-ref">PDF pp.56–57</span></h3>
+  <p><strong>一言で言うと：</strong>超音波をほとんど吸収しない構造（典型例：液体）の背側が、周囲より相対的に明るく（高輝度に）映る現象。</p>
+  <p>超音波装置は「音波は深部に行くほど弱くなる（減衰する）」という前提でTGC（深部の信号を補正で増幅）などを使い、画像を均一に見せている。しかし<strong>液体は減衰が非常に少ない</strong>ため、液体の奥では「補正が多過ぎる＝明るすぎる」状態になる。これが後方エコー増強の正体。</p>
+  <p>典型的な状況：嚢胞、膀胱、胸水、腹水、胆嚢などの液体構造の背側。</p>
+  <div class="point-box">
+    <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+    ・<strong>「無エコー＋後方エコー増強」は嚢胞性（液体）の強力なサイン</strong><br>
+    ・FASTや胸水・腹水評価では、後方エコー増強の有無が「液体か固形か」の判断手がかりになる<br>
+    ・TGCやゲインを上げすぎると増強が目立たなくなるため、<strong>増強自体を情報として残す意識</strong>で設定を維持すること
+  </div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-5</span>
+  <div class="quiz-q">後方エコー増強が起こる理由として正しいのはどれ？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-5')">① 液体が超音波を強く反射するから</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-5')">② 液体が超音波を散乱させるから</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-5')">③ 液体は減衰が少なく、装置の深度補正（TGC等）が背側で過剰になるから</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-5')">④ プローブの周波数が高すぎるから</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-5"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ⑤ 音響陰影 -->
+<div class="chat-bubble-wrap user-wrap">
+  <div class="user-avatar">🙋</div>
+  <div class="user-bubble">「音響陰影」は結石の診断に使うやつですよね？</div>
+</div>
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    そう！でも結石だけじゃない。骨や空気でも起きるんだ。「陰影＝何かが邪魔している」という物理を理解しておこう！
+  </div>
+</div>
+
+<div class="topic-card">
+  <h3>🌑 ⑤ 音響陰影（acoustic shadowing）<span class="pdf-ref">PDF pp.56–57</span></h3>
+  <p><strong>一言で言うと：</strong>強い反射体や超音波吸収体の背側で信号が激減し、黒い「影」として抜けて見える現象。</p>
+  <p>超音波が強反射体（結石・骨など）に当たると、ほとんどのエネルギーが反射されて背側には届かない。また空気でも強い反射が起きるため、同様に陰影が生じる。装置は背側に信号がないことを「真っ暗」として描出する。</p>
+  <p><strong>陰影を起こしやすいもの：</strong>
+    <span class="tag">胆石・尿路結石</span>
+    <span class="tag">骨皮質</span>
+    <span class="tag">腸管内空気</span>
+    <span class="tag">石灰化</span>
+  </p>
+  <div class="point-box">
+    <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+    ・<strong>高輝度の構造物＋クリーンな陰影（clean shadow）＝結石の典型サイン</strong><br>
+    ・陰影の形にも情報がある：クリーンな陰影は結石・骨、エッジシャドウは嚢胞の縁、汚い（dirty）陰影は空気が多いときに出やすい<br>
+    ・「陰影＝病変」ではなく、<strong>「陰影が示す物理（何が遮んでいるか）」</strong>を病態推定に使う<br>
+    ・骨後方は情報が落ちるため、窓（肋間など）を変える発想が必要
+  </div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-6</span>
+  <div class="quiz-q">音響陰影を起こすものとして誤っているのはどれ？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-6')">① 胆石</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-6')">② 骨皮質</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-6')">③ 液体（嚢胞）</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-6')">④ 腸管内空気</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-6"></div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-7</span>
+  <div class="quiz-q">胆嚢エコーで、高輝度の構造物の後方にくっきりした黒い陰影（clean shadow）を認めた。最も考えやすい診断は？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-7')">① 胆石</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-7')">② 胆嚢ポリープ</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-7')">③ 胆嚢がん</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-7')">④ 胆泥（スラッジ）</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-7"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ⑥ twinkleサイン -->
+<div class="chat-bubble-wrap user-wrap">
+  <div class="user-avatar">🙋</div>
+  <div class="user-bubble">twinkleサインってキラキラするやつですよね？どういうしくみですか？</div>
+</div>
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    カラードプラを使ったとき、結石の後ろに赤と青がちらちらするやつだね。名前の通り「きらめく」感じで分かりやすいアーチファクト！結石の補助診断として使えるよ✨
+  </div>
+</div>
+
+<div class="topic-card">
+  <h3>✨ ⑥ twinkleサイン（twinkling artifact）<span class="pdf-ref">PDF pp.61–63</span></h3>
+  <p><strong>一言で言うと：</strong>カラードプラで結石などの後方に、赤と青が素早くランダムに入れ替わる「ちらつき」が見える現象。</p>
+  <p>結石内部には微細な強反射体（微細な表面粗造など）が存在し、カラードプラの信号処理において<strong>ランダムなドプラシフト</strong>を引き起こす。これが赤・青の高速交互表示（twinkling）として現れる。実際には血流はないのに、カラードプラ上では「流れているように見える」アーチファクトだ。</p>
+  <p>1996年に <em>Radiology</em> 誌で初めて報告された、比較的新しいアーチファクト。</p>
+  <div class="point-box">
+    <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+    ・Bモードで「確かに結石？」と迷うとき、<strong>カラードプラでtwinklingを確認する補助診断として使える</strong>（尿路結石、胆石など）<br>
+    ・カラーゲインが低すぎるとtwinklingが出にくい。高すぎるとノイズだらけになる。適切なゲイン・スケール調整が必要<br>
+    ・実際の血流信号との混同に注意！twinklingは<strong>血管の走行と無関係な位置</strong>に出る点が鑑別の手がかり
+  </div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-8</span>
+  <div class="quiz-q">twinkleサインについて正しいものはどれ？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-8')">① Bモードで確認できる</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-8')">② カラードプラで結石の後方に赤青がちらつくアーチファクト</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-8')">③ 結石がない場合でも必ず出現する</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-8')">④ ゲインに関係なく一定の強さで出る</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-8"></div>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-9</span>
+  <div class="quiz-q">twinkleサインと実際の血流シグナルを区別する手がかりとして最も適切なものはどれ？</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-9')">① 周波数を変える</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-9')">② 血管の走行と無関係な位置に出ているか確認する</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-9')">③ 深度を深くする</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-9')">④ TGCを下げる</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-9"></div>
+</div>
+
+<div class="divider"></div>
+
+<div class="chat-bubble-wrap">
+  <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="chat-bubble">
+    <div class="speaker">🤖 ソノボ君</div>
+    お疲れ様！6種類のアーチファクト、まとめておくね📋
+  </div>
+</div>
+
+<div class="summary-card">
+  <h3>📋 トピック11 まとめ</h3>
+  <ul>
+    <li>💨 <strong>空気アーチファクト</strong>：空気との境界で全反射→肺はアーチファクトを読む検査。Aライン（正常）、Bライン（液体・炎症）を区別する</li>
+    <li>🪞 <strong>Mirroring</strong>：強反射面で超音波が折り返される現象→ミラーイメージの物理的原因</li>
+    <li>🔍 <strong>ミラーイメージ</strong>：横隔膜などで偽像が対側に映る→断面変更で消えるか確認</li>
+    <li>✨ <strong>後方エコー増強</strong>：液体の背側が明るくなる→嚢胞性の証拠として使える</li>
+    <li>🌑 <strong>音響陰影</strong>：結石・骨・空気の背側が黒く抜ける→clean shadowは結石の典型</li>
+    <li>⭐ <strong>twinkleサイン</strong>：カラードプラで結石後方が赤青にちらつく→結石の補助診断</li>
+  </ul>
+</div>
+
+<div class="quiz-block">
+  <span class="quiz-label">🧠 クイズ 11-10（総合）</span>
+  <div class="quiz-q">以下の説明と対応するアーチファクトの組み合わせで正しいのはどれ？<br>「減衰の少ない構造（液体など）の背側が周囲より明るく映る現象」</div>
+  <div class="quiz-choices">
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-10')">① 音響陰影</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'correct','11-10')">② 後方エコー増強</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-10')">③ ミラーイメージ</button>
+    <button class="quiz-choice" onclick="answerQuiz(this,'wrong','11-10')">④ twinkleサイン</button>
+  </div>
+  <div class="quiz-feedback" id="fb-11-10"></div>
+</div>
+
+</main>
+
+<script>
+const feedbacks = {
+  '11-1':{ correct:'正解！ Aラインは胸膜線の多重反射で生じる横縞状の高輝度線です。正常な肺（空気で満たされている）で見られます。', wrong:'不正解。Aラインが正解です。BラインはAラインとは異なり、肺に液体や炎症があるときに見られる垂直の彗星尾状像です。' },
+  '11-2':{ correct:'正解！ Bラインは肺の間質に液体が貯留しているサインです（心不全、肺炎などで見られます）。', wrong:'不正解。Bラインは肺に液体や炎症がある可能性を示すサインです。正常な肺ではAラインが見られます。' },
+  '11-3':{ correct:'正解！ 横隔膜（強反射面）により、肝臓の鏡像が横隔膜の上側（本来は肺）に描出されます。', wrong:'不正解。ミラーイメージは肝臓と横隔膜の組み合わせで最も出やすいです。横隔膜が「鏡」の役割をします。' },
+  '11-4':{ correct:'正解！ アーチファクトはプローブの角度・断面を変えると消えますが、本物の病変は消えません（または形が変わります）。', wrong:'不正解。最も基本的な確認方法は「断面・角度を変えて像が消えるか確認する」ことです。' },
+  '11-5':{ correct:'正解！ 液体は超音波の減衰が非常に少ないため、装置のTGC（深度補正）が相対的に過剰になり、背側が明るく見えます。', wrong:'不正解。後方エコー増強は、液体が減衰しにくいため装置の深度補正が過剰になり、背側が明るくなる現象です。' },
+  '11-6':{ correct:'正解！ 液体（嚢胞）は超音波の吸収が少なく、音響陰影ではなく後方エコー増強を起こします。', wrong:'不正解。胆石・骨皮質・腸管内空気はいずれも音響陰影を起こします。液体（嚢胞）は反対に後方エコー増強を起こします。' },
+  '11-7':{ correct:'正解！ 高輝度の構造物＋クリーンな音響陰影（clean shadow）は胆石の典型的なエコーパターンです。', wrong:'不正解。高輝度の構造物＋クリーンな音響陰影は胆石の典型パターンです。ポリープは音響陰影を作りません。' },
+  '11-8':{ correct:'正解！ twinkleサインはカラードプラで結石後方に赤青がランダムにちらつくアーチファクトです。', wrong:'不正解。twinkleサインはカラードプラで確認するアーチファクトです。Bモードでは確認できません。' },
+  '11-9':{ correct:'正解！ twinkleサインは血管走行と無関係な位置（結石の後方）に出るため、実際の血流シグナルと区別できます。', wrong:'不正解。twinkleサインは血管走行と無関係な位置に出ます。これが実際の血流シグナルとの鑑別の手がかりです。' },
+  '11-10':{ correct:'正解！ 後方エコー増強（posterior acoustic enhancement）は液体などの減衰の少ない構造の背側が明るくなる現象です。嚢胞性の証拠として重要です。', wrong:'不正解。問題文の説明は「後方エコー増強（posterior acoustic enhancement）」です。液体の背側が周囲より明るく映る現象です。' },
+};
+function answerQuiz(btn, result, id) {
+  const block = btn.closest('.quiz-block');
+  const choices = block.querySelectorAll('.quiz-choice');
+  const fb = document.getElementById('fb-' + id);
+  if (block.dataset.answered) return;
+  block.dataset.answered = '1';
+  choices.forEach(c => { c.disabled = true; });
+  if (result === 'correct') {
+    btn.classList.add('correct');
+    fb.className = 'quiz-feedback correct-fb';
+    fb.textContent = '✅ ' + feedbacks[id].correct;
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'quiz-feedback wrong-fb';
+    fb.textContent = '❌ ' + feedbacks[id].wrong;
+    choices.forEach(c => { if (c.onclick.toString().includes("'correct'")) c.classList.add('show-correct'); });
+  }
+}
+</script>
+</body>
+</html>

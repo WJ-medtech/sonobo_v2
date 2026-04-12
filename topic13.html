@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13. 画像をうまく出す手技 — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#1a6fd4; --primary-light:#4a9eff; --primary-dark:#0d4fa0; --accent:#00c8a0; --accent2:#ff6b35; --bg:#f0f6ff; --card:#ffffff; --text:#1a2540; --text-light:#5a6a8a; --shadow:0 4px 24px rgba(26,111,212,0.12); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .app-header { background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%); padding:16px 24px; display:flex; align-items:center; gap:16px; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+  .header-back { background:rgba(255,255,255,0.18); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:1.2rem; transition:background 0.2s; flex-shrink:0; text-decoration:none; }
+  .header-back:hover { background:rgba(255,255,255,0.3); }
+  .header-logo { width:44px; height:44px; flex-shrink:0; }
+  .header-title { color:white; font-family:'M PLUS Rounded 1c',sans-serif; }
+  .header-title h1 { font-size:1.1rem; font-weight:800; line-height:1.2; }
+  .header-title p { font-size:0.72rem; opacity:0.85; font-weight:400; }
+  .main { max-width:720px; margin:0 auto; padding:24px 16px 80px; }
+  .chat-bubble-wrap { display:flex; align-items:flex-end; gap:12px; margin-bottom:24px; animation:fadeInUp 0.4s ease; }
+  .sonobo-avatar { width:64px; height:64px; flex-shrink:0; filter:drop-shadow(0 4px 8px rgba(26,111,212,0.3)); animation:bounce 3s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .chat-bubble { background:white; border-radius:20px 20px 20px 4px; padding:16px 20px; box-shadow:var(--shadow); flex:1; font-size:0.93rem; line-height:1.75; border-left:4px solid var(--primary); position:relative; }
+  .chat-bubble::before { content:''; position:absolute; left:-8px; bottom:16px; border:8px solid transparent; border-right-color:white; border-left:none; }
+  .chat-bubble .speaker { font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; color:var(--primary); font-size:0.8rem; margin-bottom:6px; display:flex; align-items:center; gap:4px; }
+  .chat-bubble-wrap.user-wrap { flex-direction:row-reverse; }
+  .user-bubble { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:white; border-radius:20px 20px 4px 20px; padding:14px 18px; box-shadow:var(--shadow); font-size:0.93rem; line-height:1.7; position:relative; max-width:85%; }
+  .user-bubble::before { content:''; position:absolute; right:-8px; bottom:16px; border:8px solid transparent; border-left-color:var(--primary); border-right:none; }
+  .user-avatar { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#ffd580,#ffaa00); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+  .section-header { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:white; border-radius:18px; padding:20px 24px; margin-bottom:20px; display:flex; align-items:center; gap:16px; animation:fadeInUp 0.4s ease; }
+  .section-header .section-icon { font-size:2.8rem; flex-shrink:0; }
+  .section-header h2 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1.25rem; font-weight:800; line-height:1.3; }
+  .section-header p { font-size:0.78rem; opacity:0.85; margin-top:3px; }
+  .topic-card { background:white; border-radius:18px; padding:20px 22px; margin-bottom:20px; box-shadow:var(--shadow); border-top:4px solid var(--primary); animation:fadeInUp 0.4s ease; }
+  .topic-card h3 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1.05rem; font-weight:800; color:var(--primary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .topic-card p { font-size:0.9rem; line-height:1.8; color:var(--text); margin-bottom:10px; }
+  .topic-card ul { padding-left:1.2em; margin-bottom:10px; }
+  .topic-card ul li { font-size:0.9rem; line-height:1.75; margin-bottom:4px; }
+  .topic-card ol { padding-left:1.4em; margin-bottom:10px; }
+  .topic-card ol li { font-size:0.9rem; line-height:1.8; margin-bottom:6px; }
+  .point-box { background:#f0faf6; border-left:4px solid var(--accent); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.88rem; line-height:1.75; }
+  .point-box .point-title { font-weight:700; color:#00a87a; margin-bottom:6px; font-size:0.82rem; }
+  .warn-box { background:#fff8f0; border-left:4px solid var(--accent2); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.88rem; line-height:1.75; }
+  .warn-box .warn-title { font-weight:700; color:var(--accent2); margin-bottom:6px; font-size:0.82rem; }
+  .step-box { background:#f4f8ff; border-radius:12px; padding:14px 16px; margin:12px 0; }
+  .step-box .step-title { font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; color:var(--primary); font-size:0.85rem; margin-bottom:10px; }
+  .step-item { display:flex; gap:10px; margin-bottom:8px; align-items:flex-start; }
+  .step-num { background:var(--primary); color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; flex-shrink:0; margin-top:1px; }
+  .step-text { font-size:0.88rem; line-height:1.7; }
+  .quiz-block { background:#f4f8ff; border-radius:16px; padding:20px; margin-bottom:20px; border:2px solid #d0e4ff; animation:fadeInUp 0.4s ease; }
+  .quiz-block .quiz-label { font-family:'M PLUS Rounded 1c',sans-serif; font-size:0.78rem; font-weight:800; color:var(--primary); background:#d8eaff; padding:3px 10px; border-radius:20px; display:inline-block; margin-bottom:10px; }
+  .quiz-block .quiz-q { font-size:0.93rem; font-weight:700; margin-bottom:14px; line-height:1.65; }
+  .quiz-choices { display:flex; flex-direction:column; gap:8px; }
+  .quiz-choice { background:white; border:2px solid #d0e0f8; border-radius:12px; padding:11px 15px; font-size:0.88rem; cursor:pointer; transition:all 0.18s; text-align:left; font-family:'Noto Sans JP',sans-serif; color:var(--text); }
+  .quiz-choice:hover { border-color:var(--primary); background:#eef4ff; }
+  .quiz-choice.correct { background:#e6fbf4; border-color:var(--accent); color:#007a58; font-weight:700; }
+  .quiz-choice.wrong { background:#fff0ed; border-color:#ff6b35; color:#cc3300; }
+  .quiz-choice.show-correct { background:#e6fbf4; border-color:var(--accent); }
+  .quiz-feedback { margin-top:12px; font-size:0.87rem; line-height:1.7; padding:10px 14px; border-radius:10px; display:none; }
+  .quiz-feedback.correct-fb { background:#e6fbf4; color:#007a58; display:block; }
+  .quiz-feedback.wrong-fb { background:#fff0ed; color:#cc3300; display:block; }
+  .divider { height:2px; background:linear-gradient(90deg,var(--primary-light),transparent); border-radius:2px; margin:28px 0; }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .tag { display:inline-block; background:#eef4ff; color:var(--primary); border-radius:6px; padding:2px 8px; font-size:0.78rem; font-weight:700; margin-right:4px; margin-bottom:4px; }
+  .summary-card { background:linear-gradient(135deg,#0d4fa0,#1a6fd4); color:white; border-radius:18px; padding:22px 24px; margin-bottom:24px; }
+  .summary-card h3 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1rem; font-weight:800; margin-bottom:12px; }
+  .summary-card ul { padding-left:1.2em; }
+  .summary-card ul li { font-size:0.88rem; line-height:1.8; opacity:0.95; }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <a href="sonobo_lecture.html" class="header-back">←</a>
+  <svg class="header-logo" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="white" fill-opacity="0.15"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white" fill-opacity="0.9"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="header-title">
+    <h1>13. 画像をうまく出す手技</h1>
+    <p>座学コース — ソノボ君と学ぶPOCUS基礎</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      いよいよ「実際に画像を取得する」技術の話！<br>
+      モードを理解したら、次は<strong>「ちゃんと診断に使える画像を作って、保存する」</strong>スキルが必要だよ。Bモード・Mモード・カラードプラ、それぞれの取得手順を丁寧に学んでいこう 🎬
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-icon">🎯</span>
+    <div>
+      <h2>画像取得の手技</h2>
+      <p>Bモード（グレースケール）/ 動きMモード / カラードプラ</p>
+    </div>
+  </div>
+
+  <!-- ===== 1. Bモード ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">Bモードで「ちゃんとした画像」を出すには、どういう順番で操作すればいいですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      7ステップのフローがあるよ！順番通りにやることが大事。「ノブをいじる前に、まず全体像を把握する」のが鉄則だ📋
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🖥️ ① Bモード（グレースケール）の取得手順</h3>
+    <p><strong>一言で言うと：</strong>適切なプローブ・プリセット・ノブ調整で、診断に使える標準的な断層像を作り、正しく保存する。</p>
+    <div class="step-box">
+      <div class="step-title">📋 Bモード 7ステップ</div>
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>プローブ選択</strong>：目的臓器の深さ・部位に合ったプローブを選ぶ（腹部→コンベックス、表層→リニア、心臓→フェーズドアレイなど）</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>プリセット選択</strong>：装置の「腹部」「心臓」「血管」などの検査プリセットを選ぶ（周波数・ゲインなどの初期設定が最適化される）</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>深度（Depth）設定</strong>：目的臓器全体が画面に収まるよう深度を調整。まず「全景（深め）」から始めて、細部を見るときに浅くする</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>ゲイン（Gain）調整</strong>：全体の輝度を調整。明るすぎず暗すぎず、液体が無エコーとして見えているか確認</div></div>
+      <div class="step-item"><div class="step-num">5</div><div class="step-text"><strong>フォーカス（Focus）設定</strong>：最も詳しく見たい深さにフォーカスゾーンを合わせる（フォーカスが合っている深さで解像度が最大化される）</div></div>
+      <div class="step-item"><div class="step-num">6</div><div class="step-text"><strong>TGC/STC（時間利得補償）調整</strong>：深部と浅部の輝度差を補正して画像を均一化する。深部が暗ければ深部のTGCを上げる</div></div>
+      <div class="step-item"><div class="step-num">7</div><div class="step-text"><strong>フリーズ→シネ確認→保存</strong>：最良の断面でフリーズ。シネ機能で少し前の動画も確認。静止画＋必要なら動画として保存</div></div>
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>「まず全景（深度を深め）→次に細部（浅く・焦点を合わせる）」</strong>がスピードと見落とし防止を両立させるコツ。<br>
+      ・アーチファクト評価時は画像処理設定（ゲイン・TGC）を固定して、アーチファクトの有無を条件一定で評価する。<br>
+      ・保存時は断面名・マーカー（左右・頭尾方向）を確認してから保存すること。
+    </div>
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-1</span>
+    <div class="quiz-q">Bモード取得の7ステップで、「プリセット選択」の直後に行うのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-1')">① フォーカス設定</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-1')">② 深度（Depth）設定</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-1')">③ TGC調整</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-1')">④ 保存（フリーズ）</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-1"></div>
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-2</span>
+    <div class="quiz-q">深部が全体的に暗く見えるとき、最初に試みるべき操作はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-2')">① 深度を浅くする</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-2')">② TGC（時間利得補償）の深部側を上げる</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-2')">③ フォーカスを深部に移動する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-2')">④ カラードプラに切り替える</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-2"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 2. 動きMモード ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">Mモードで画像を保存するとき、どんな手順でやればいいですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      「Bモードで構造を同定→Mカーソルを当てる→記録・保存」が基本の流れ。MモードはBモードの補助として使うものだよ！
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>📈 ② 動きMモードの取得手順</h3>
+    <p><strong>一言で言うと：</strong>BモードでMカーソルを当てる構造を明確に同定してから、その動きを時間軸で記録・保存する。</p>
+    <div class="step-box">
+      <div class="step-title">📋 Mモード 手順</div>
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Bモードで構造を同定</strong>：まずBモードで目的の構造（IVC・心壁・胸膜など）がはっきり見える位置にプローブを固定する</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>Mカーソルを設定</strong>：Bモード画面上でMモードを起動し、評価したい構造を垂直に通過するようにカーソル（縦線）を配置する</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>Mモード波形を確認</strong>：画面半分にBモード、半分にMモード波形が表示される。波形の動きが意図した構造の動きを捉えているか確認</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>フリーズ→保存</strong>：数呼吸分（心臓なら数心拍分）の波形が記録できたらフリーズして保存。断面名とマーカーを確認してから保存</div></div>
+    </div>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ カーソル位置の確認が最重要</div>
+      Mカーソルが意図した構造を通っていないと、まったく意味のない波形が記録される。「今カーソルは何を切っているか？」をBモード側で常に確認しよう。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>保存時は「断面名＋BモードとMモードの両方が写っている画像」で保存</strong>することが推奨。後で「どこを見たのか」が分かるように。<br>
+      ・IVC評価では、呼吸性変動が最大になる位置（肝静脈合流部付近・剣状突起下から2cm以内が目安）にカーソルを当てる。<br>
+      ・体位変更後はBモードでマーカー（頭側・尾側）が正しいか再確認すること。
+    </div>
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-3</span>
+    <div class="quiz-q">Mモードで取得した波形が不自然な形をしているとき、最初に確認すべきことは？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-3')">① ゲインを調整する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-3')">② BモードでMカーソルが目的の構造を正確に通っているか確認する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-3')">③ 深度を変える</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-3')">④ カラードプラに切り替える</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-3"></div>
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-4</span>
+    <div class="quiz-q">Mモード画像の保存で最も重要なことはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-4')">① なるべく長い時間を記録する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-4')">② カラーをオンにして保存する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-4')">③ 断面名・マーカー整合を確認し、BモードとMモードの両方が含まれた状態で保存する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-4')">④ ゲインを最大にして保存する</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-4"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 3. カラードプラ ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">カラードプラって、ゲインをどのくらいにすればいいのかよく分からなくて…</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      実はコツがあって、<strong>「まず上げすぎてノイズを確認→そこから下げて適正化」</strong>という手順が実践的で学習にも効果的なんだ！この"上げてから下げる"手順を覚えよう🎨
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🔴🔵 ③ カラードプラの取得手順</h3>
+    <p><strong>一言で言うと：</strong>Bモードで血管位置を確認し、カラーBOX範囲とゲイン/PRFを調整して、血流情報が破綻しない適正な画像を取得・保存する。</p>
+    <div class="step-box">
+      <div class="step-title">📋 カラードプラ 取得手順</div>
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Bモードで血管位置を同定</strong>：まずBモードで評価したい血管や心臓が明確に見えるようにプローブ位置・深度・ゲインを整える</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>カラードプラを起動し、BOX範囲を設定</strong>：カラーBOX（カラーを重畳する範囲）をなるべく小さく、目的の血管が収まる範囲に設定する。BOXが大きいとフレームレートが落ちる</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>カラーゲインを上げてノイズを確認</strong>：ゲインを上げると組織にもノイズ（色）が出始める。この「ノイズが出始める点」を確認する</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>ゲインを少し下げて適正化</strong>：ノイズが消える手前まで戻す。これが適正ゲイン。この"上げてから下げる"手順で確実に適正値を設定できる</div></div>
+      <div class="step-item"><div class="step-num">5</div><div class="step-text"><strong>PRF（スケール）を確認・調整</strong>：エイリアシング（折り返し）が出ていればPRFを上げる。逆に低速血流を見たい場合はPRFを下げる</div></div>
+      <div class="step-item"><div class="step-num">6</div><div class="step-text"><strong>フリーズ→保存</strong>：代表断面でフリーズし、静止画または動画で保存。断面名・マーカーを確認</div></div>
+    </div>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ 血管走行と角度に注意</div>
+      カラードプラはドプラ効果を使うため、血管とプローブビームの角度が90°に近いと（血流方向がビームに垂直）、血流があっても色が出ない。血管が横走行しているときはプローブを傾けるか角度補正が必要。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>「まずノイズを見せる」調整手順は学習効率が高く、適正ゲインの感覚が身につきやすい。</strong><br>
+      ・折り返し（エイリアシング）は病態（逆流・高速血流）と混同しやすいので、スケール/PRFを先に確認する。<br>
+      ・カラーBOXは必要最小限の大きさに。広すぎるとフレームレートが低下して動きが確認しにくくなる。
+    </div>
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-5</span>
+    <div class="quiz-q">カラードプラのゲイン調整で推奨される手順はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-5')">① ゲインを最小から始めて徐々に上げる</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-5')">② ゲインを上げてノイズが出る点を確認し、そこから下げて適正化する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-5')">③ プリセットのデフォルト値のまま変更しない</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-5')">④ Bモードゲインと連動させる</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-5"></div>
+  </div>
+
+  <!-- Quiz 6 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-6</span>
+    <div class="quiz-q">カラードプラのBOX範囲を必要最小限にする理由はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-6')">① 色が見やすくなるから</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-6')">② BOXが大きいとフレームレートが低下し、動きの確認がしにくくなるから</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-6')">③ ゲインが自動で最適化されるから</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-6')">④ 音響出力（TI）が下がるから</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-6"></div>
+  </div>
+
+  <!-- Quiz 7 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-7</span>
+    <div class="quiz-q">血管が横走行（プローブビームに垂直方向）しているときにカラードプラで色が出ないのはなぜ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-7')">① ゲインが低すぎるから</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-7')">② ドプラ効果は血流方向とビームの角度に依存し、垂直（90°）では周波数シフトがゼロになるから</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-7')">③ PRFが高すぎるから</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-7')">④ カラーBOXが小さすぎるから</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-7"></div>
+  </div>
+
+  <!-- Quiz 8 総合 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 13-8（総合）</span>
+    <div class="quiz-q">Bモード取得の7ステップの順番として正しいのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-8')">① フォーカス→深度→ゲイン→TGC→プローブ選択→プリセット→保存</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','13-8')">② プローブ選択→プリセット→深度→ゲイン→フォーカス→TGC→保存</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-8')">③ ゲイン→TGC→深度→フォーカス→プリセット→プローブ選択→保存</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','13-8')">④ 深度→ゲイン→プローブ選択→プリセット→フォーカス→TGC→保存</button>
+    </div>
+    <div class="quiz-feedback" id="fb-13-8"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      3つのモードの取得手技を学んだね！まとめておくよ 📋
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3>📋 トピック13 まとめ</h3>
+    <ul>
+      <li>🖥️ <strong>Bモード</strong>：7ステップ（プローブ→プリセット→深度→ゲイン→フォーカス→TGC→保存）。まず全景から、細部は後で</li>
+      <li>📈 <strong>Mモード</strong>：Bモードで構造同定→Mカーソル設定→波形確認→保存。カーソル位置がすべての前提</li>
+      <li>🔴🔵 <strong>カラードプラ</strong>：Bモードで血管同定→BOX設定→ゲインを上げてノイズ確認→下げて適正化→PRF確認→保存。「上げてから下げる」が鉄則</li>
+      <li>💾 <strong>共通</strong>：保存は「断面名＋マーカー整合＋代表静止画（＋必要なら動画）」</li>
+    </ul>
+  </div>
+
+</main>
+
+<script>
+const feedbacks = {
+  '13-1': { correct: '正解！ プリセット選択の次は「深度（Depth）設定」です。まず臓器全体が画面に収まる深度から始めます。', wrong: '不正解。7ステップの順番は：プローブ選択→プリセット→深度→ゲイン→フォーカス→TGC→保存です。プリセットの次は深度です。' },
+  '13-2': { correct: '正解！ 深部が暗い場合はTGC（時間利得補償）の深部側を上げて補正します。TGCは深さごとのゲイン補正機能です。', wrong: '不正解。深部が暗い場合はTGC（時間利得補償）の深部側を上げて補正します。全体のゲインを上げると浅部が明るくなりすぎます。' },
+  '13-3': { correct: '正解！ Mモード波形が不自然な場合は、まずBモードでMカーソルが意図した構造（IVC・心壁等）を正確に通っているか確認します。', wrong: '不正解。Mモードの異常波形の最初の確認事項は「Bモードでカーソル位置が正しいか」です。カーソルがずれると意味のない波形が記録されます。' },
+  '13-4': { correct: '正解！ Mモード保存では、断面名・マーカー整合を確認し、BモードとMモードの両方が含まれた状態で保存することが重要です。後日「どこを見たか」が明確になります。', wrong: '不正解。Mモード保存で最も重要なのは「断面名・マーカー整合の確認」と「BモードとMモード両方を含んだ保存」です。' },
+  '13-5': { correct: '正解！ 「ゲインを上げてノイズが出る点を確認し、そこから下げて適正化する」手順が推奨されます。この"上げてから下げる"方法で確実に適正値を設定できます。', wrong: '不正解。カラードプラのゲイン調整は「上げてノイズを確認→下げて適正化」が推奨手順です。学習効率も高い方法です。' },
+  '13-6': { correct: '正解！ カラーBOXが大きいとフレームレート（画像の更新頻度）が低下し、動きのある血流の確認が難しくなります。', wrong: '不正解。BOXを小さくする主な理由は「フレームレートの維持」です。BOXが大きいと処理負荷が増えてフレームレートが低下します。' },
+  '13-7': { correct: '正解！ ドプラ効果は血流ベクトルとビームの内積（cos角度）に比例するため、90°では周波数シフトがゼロになり、血流があっても色が出ません。', wrong: '不正解。ドプラ効果は血流方向とビームの角度に依存します。垂直（90°）では周波数シフトがゼロになるため、血流があっても色が出ません。' },
+  '13-8': { correct: '正解！ Bモード7ステップは「プローブ選択→プリセット→深度→ゲイン→フォーカス→TGC→保存」の順番です。', wrong: '不正解。正しい順番は「プローブ選択→プリセット→深度→ゲイン→フォーカス→TGC→保存」です。この順番を覚えておきましょう。' },
+};
+function answerQuiz(btn, result, id) {
+  const block = btn.closest('.quiz-block');
+  const choices = block.querySelectorAll('.quiz-choice');
+  const fb = document.getElementById('fb-' + id);
+  if (block.dataset.answered) return;
+  block.dataset.answered = '1';
+  choices.forEach(c => { c.disabled = true; });
+  if (result === 'correct') {
+    btn.classList.add('correct');
+    fb.className = 'quiz-feedback correct-fb';
+    fb.textContent = '✅ ' + feedbacks[id].correct;
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'quiz-feedback wrong-fb';
+    fb.textContent = '❌ ' + feedbacks[id].wrong;
+    choices.forEach(c => { if (c.onclick.toString().includes("'correct'")) c.classList.add('show-correct'); });
+  }
+}
+</script>
+</body>
+</html>

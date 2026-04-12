@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>14. 基本組織を見分ける — ソノボ君</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#1a6fd4; --primary-light:#4a9eff; --primary-dark:#0d4fa0; --accent:#00c8a0; --accent2:#ff6b35; --bg:#f0f6ff; --text:#1a2540; --shadow:0 4px 24px rgba(26,111,212,0.12); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .app-header { background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%); padding:16px 24px; display:flex; align-items:center; gap:16px; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+  .header-back { background:rgba(255,255,255,0.18); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:1.2rem; transition:background 0.2s; flex-shrink:0; text-decoration:none; }
+  .header-back:hover { background:rgba(255,255,255,0.3); }
+  .header-logo { width:44px; height:44px; flex-shrink:0; }
+  .header-title { color:white; font-family:'M PLUS Rounded 1c',sans-serif; }
+  .header-title h1 { font-size:1.1rem; font-weight:800; line-height:1.2; }
+  .header-title p { font-size:0.72rem; opacity:0.85; }
+  .main { max-width:720px; margin:0 auto; padding:24px 16px 80px; }
+  .chat-bubble-wrap { display:flex; align-items:flex-end; gap:12px; margin-bottom:24px; animation:fadeInUp 0.4s ease; }
+  .sonobo-avatar { width:64px; height:64px; flex-shrink:0; filter:drop-shadow(0 4px 8px rgba(26,111,212,0.3)); animation:bounce 3s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .chat-bubble { background:white; border-radius:20px 20px 20px 4px; padding:16px 20px; box-shadow:var(--shadow); flex:1; font-size:0.93rem; line-height:1.75; border-left:4px solid var(--primary); position:relative; }
+  .chat-bubble::before { content:''; position:absolute; left:-8px; bottom:16px; border:8px solid transparent; border-right-color:white; border-left:none; }
+  .chat-bubble .speaker { font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; color:var(--primary); font-size:0.8rem; margin-bottom:6px; display:flex; align-items:center; gap:4px; }
+  .chat-bubble-wrap.user-wrap { flex-direction:row-reverse; }
+  .user-bubble { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:white; border-radius:20px 20px 4px 20px; padding:14px 18px; box-shadow:var(--shadow); font-size:0.93rem; line-height:1.7; position:relative; max-width:85%; }
+  .user-bubble::before { content:''; position:absolute; right:-8px; bottom:16px; border:8px solid transparent; border-left-color:var(--primary); border-right:none; }
+  .user-avatar { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#ffd580,#ffaa00); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+  .section-header { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:white; border-radius:18px; padding:20px 24px; margin-bottom:20px; display:flex; align-items:center; gap:16px; animation:fadeInUp 0.4s ease; }
+  .section-header .section-icon { font-size:2.8rem; flex-shrink:0; }
+  .section-header h2 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1.25rem; font-weight:800; line-height:1.3; }
+  .section-header p { font-size:0.78rem; opacity:0.85; margin-top:3px; }
+  .topic-card { background:white; border-radius:18px; padding:20px 22px; margin-bottom:20px; box-shadow:var(--shadow); border-top:4px solid var(--primary); animation:fadeInUp 0.4s ease; }
+  .topic-card h3 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1.05rem; font-weight:800; color:var(--primary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .topic-card p { font-size:0.9rem; line-height:1.8; color:var(--text); margin-bottom:10px; }
+  .topic-card ul { padding-left:1.2em; margin-bottom:10px; }
+  .topic-card ul li { font-size:0.9rem; line-height:1.75; margin-bottom:4px; }
+  .point-box { background:#f0faf6; border-left:4px solid var(--accent); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.88rem; line-height:1.75; }
+  .point-box .point-title { font-weight:700; color:#00a87a; margin-bottom:6px; font-size:0.82rem; }
+  .echo-badge { display:inline-flex; align-items:center; gap:6px; border-radius:8px; padding:5px 12px; font-size:0.82rem; font-weight:700; margin:6px 4px 6px 0; }
+  .echo-anecho { background:#1a2540; color:white; }
+  .echo-hypo { background:#6890c0; color:white; }
+  .echo-iso { background:#a0b8d0; color:#1a2540; }
+  .echo-hyper { background:#fff9e0; color:#b08000; border:1.5px solid #e0c840; }
+  .echo-bright { background:#fffde0; color:#8a7000; border:1.5px solid #e0d040; }
+  .quiz-block { background:#f4f8ff; border-radius:16px; padding:20px; margin-bottom:20px; border:2px solid #d0e4ff; animation:fadeInUp 0.4s ease; }
+  .quiz-block .quiz-label { font-family:'M PLUS Rounded 1c',sans-serif; font-size:0.78rem; font-weight:800; color:var(--primary); background:#d8eaff; padding:3px 10px; border-radius:20px; display:inline-block; margin-bottom:10px; }
+  .quiz-block .quiz-q { font-size:0.93rem; font-weight:700; margin-bottom:14px; line-height:1.65; }
+  .quiz-choices { display:flex; flex-direction:column; gap:8px; }
+  .quiz-choice { background:white; border:2px solid #d0e0f8; border-radius:12px; padding:11px 15px; font-size:0.88rem; cursor:pointer; transition:all 0.18s; text-align:left; font-family:'Noto Sans JP',sans-serif; color:var(--text); }
+  .quiz-choice:hover { border-color:var(--primary); background:#eef4ff; }
+  .quiz-choice.correct { background:#e6fbf4; border-color:var(--accent); color:#007a58; font-weight:700; }
+  .quiz-choice.wrong { background:#fff0ed; border-color:#ff6b35; color:#cc3300; }
+  .quiz-choice.show-correct { background:#e6fbf4; border-color:var(--accent); }
+  .quiz-feedback { margin-top:12px; font-size:0.87rem; line-height:1.7; padding:10px 14px; border-radius:10px; display:none; }
+  .quiz-feedback.correct-fb { background:#e6fbf4; color:#007a58; display:block; }
+  .quiz-feedback.wrong-fb { background:#fff0ed; color:#cc3300; display:block; }
+  .divider { height:2px; background:linear-gradient(90deg,var(--primary-light),transparent); border-radius:2px; margin:28px 0; }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .tag { display:inline-block; background:#eef4ff; color:var(--primary); border-radius:6px; padding:2px 8px; font-size:0.78rem; font-weight:700; margin-right:4px; margin-bottom:4px; }
+  .supplement-note { background:#f8f0ff; border-left:4px solid #9055d4; border-radius:10px; padding:10px 14px; margin-top:10px; font-size:0.83rem; line-height:1.7; color:#6030a0; }
+  .summary-card { background:linear-gradient(135deg,#0d4fa0,#1a6fd4); color:white; border-radius:18px; padding:22px 24px; margin-bottom:24px; }
+  .summary-card h3 { font-family:'M PLUS Rounded 1c',sans-serif; font-size:1rem; font-weight:800; margin-bottom:12px; }
+  .summary-card table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+  .summary-card th { opacity:0.7; font-weight:700; text-align:left; padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.3); }
+  .summary-card td { padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.15); line-height:1.5; }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <a href="sonobo_lecture.html" class="header-back">←</a>
+  <svg class="header-logo" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="white" fill-opacity="0.15"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white" fill-opacity="0.9"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+  <div class="header-title">
+    <h1>14. 基本組織を見分ける</h1>
+    <p>座学コース — ソノボ君と学ぶPOCUS基礎</p>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      今回は「エコー画面に映っているのは何の組織か？」を見分けるトレーニング！<br>
+      液体・脂肪・軟部組織・骨・筋肉・軟骨・腱・神経・血管の9種類を学ぶよ。<br><br>
+      それぞれのエコー像（明るさ・形・特徴）をしっかり覚えると、どんな画面を見ても「これは○○だ！」と分かるようになるよ🔍
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-icon">🔬</span>
+    <div>
+      <h2>基本組織 9種の見分け方</h2>
+      <p>液体 / 脂肪 / 軟部組織 / 骨 / 筋肉 / 軟骨 / 腱 / 神経 / 血管</p>
+    </div>
+  </div>
+
+  <!-- エコー輝度の凡例 -->
+  <div class="topic-card">
+    <h3>💡 エコー輝度（明るさ）の基本用語</h3>
+    <p>超音波画像の明るさ（輝度）を表す用語を先に整理しておこう。</p>
+    <div>
+      <span class="echo-badge echo-anecho">無エコー（anechoic）：真っ黒</span>
+      <span class="echo-badge echo-hypo">低エコー（hypoechoic）：暗めのグレー</span>
+      <span class="echo-badge echo-iso">等エコー（isoechoic）：周囲と同じ明るさ</span>
+      <span class="echo-badge echo-hyper">高エコー（hyperechoic）：明るい白</span>
+    </div>
+    <p style="margin-top:10px; font-size:0.87rem;">輝度は組織の音響インピーダンスの差（反射の強さ）で決まる。反射が強い＝白く、弱い＝黒く映る。</p>
+  </div>
+
+  <!-- ===== 1. 液体 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">液体ってどんな風に映りますか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      液体は超音波をほとんど反射しないから<strong>真っ黒（無エコー）</strong>に見えるよ。そして後ろが明るくなる「後方エコー増強」がセットで見られることが多い！
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>💧 ① 液体（fluid）</h3>
+    <span class="echo-badge echo-anecho">無エコー（anechoic）</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>超音波を散乱・吸収せずに通過させるため、内部は真っ黒（無エコー）に見える。後方エコー増強を伴うことが多い。内部に浮遊物（血液・膿・デブリ）があると低エコーの点状・帯状陰影が見える場合もある。</p>
+    <p><strong>代表例：</strong>
+      <span class="tag">胸水・腹水</span><span class="tag">嚢胞</span><span class="tag">膀胱内尿</span><span class="tag">胆嚢内胆汁</span><span class="tag">血腫（急性期）</span>
+    </p>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>「無エコー＋後方エコー増強」は嚢胞性（液体）の強力なサイン。</strong><br>
+      ・FASTでは腹腔内出血（液体）をこのサインで探す。<br>
+      ・ゲイン過多で液体が"濁って"見えることがある→設定を先に整えてから評価する。
+    </div>
+  </div>
+
+  <!-- ===== 2. 脂肪 ===== -->
+  <div class="topic-card">
+    <h3>🧈 ② 脂肪（fat）</h3>
+    <span class="echo-badge echo-hyper">高〜中エコー（散乱性）</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>脂肪組織は超音波の散乱が多く、一般に中〜高エコーとして見える。また音響減衰が大きく、深部へ行くほど音波が弱くなるため、背側の描出が落ちることがある。皮下脂肪は比較的均一な中エコー、脂肪肝では肝実質全体が高輝度化する。</p>
+    <p><strong>代表例：</strong>
+      <span class="tag">皮下脂肪</span><span class="tag">腹腔内脂肪</span><span class="tag">脂肪肝</span>
+    </p>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・肥満体型（皮下脂肪が厚い）では超音波が深部まで届きにくい。低周波プローブとTGCの深部調整が重要。<br>
+      ・<strong>「深部が見えない＝脂肪による減衰の可能性」</strong>と考え、プローブや設定を変えてみる。病変の見落としに注意。
+    </div>
+  </div>
+
+  <!-- ===== 3. 軟部組織 ===== -->
+  <div class="topic-card">
+    <h3>🫀 ③ 軟部組織（soft tissue）</h3>
+    <span class="echo-badge echo-iso">中エコー（層状構造）</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>皮膚・皮下組織・筋膜などの層構造がBモードで観察できる。皮膚は高エコー線として見え、皮下組織は中エコー、筋膜は線状高エコーとして層状に映る。リニアプローブで表層から丁寧に追っていくと各層が分かる。</p>
+    <p><strong>代表例：</strong>
+      <span class="tag">皮膚</span><span class="tag">皮下組織</span><span class="tag">筋膜</span>
+    </p>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・表層（皮膚・皮下）の観察には<strong>高周波リニアプローブ</strong>が基本。<br>
+      ・圧迫（コンプレッション）で構造の可動性や圧痛点を確認することがある（蜂窩織炎・膿瘍・血腫の評価など）。
+    </div>
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-1</span>
+    <div class="quiz-q">超音波で「無エコー（真っ黒）＋後方エコー増強」が見られた。最も考えやすい構造は？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-1')">① 骨</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-1')">② 液体（嚢胞・胸水・腹水など）</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-1')">③ 脂肪</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-1')">④ 筋肉</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-1"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 4. 骨 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">骨はどんな風に見えますか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      骨皮質は超音波をほぼすべて反射するから、<strong>表面が白い高エコー線</strong>として見えて、その後方は真っ暗（音響陰影）になるよ！
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🦴 ④ 骨（bone）</h3>
+    <span class="echo-badge echo-hyper">高エコー線（表面のみ）＋音響陰影</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>骨皮質は音響インピーダンスが非常に高く、超音波をほぼすべて反射する。そのため<strong>骨表面は明るい白い線（高エコー線）として見え、その背側は音響陰影（真っ暗）</strong>になる。骨の内部（髄腔）は見えない。</p>
+    <p><strong>代表例：</strong>
+      <span class="tag">肋骨</span><span class="tag">脊椎</span><span class="tag">長骨</span><span class="tag">頭蓋骨</span>
+    </p>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・骨の後方は情報が得られない（陰影）→<strong>肋骨が邪魔なら肋間からアプローチ（肋間走査）</strong>する発想が重要。<br>
+      ・骨折評価では皮質線の連続性（断裂・step off）を確認する。<br>
+      ・陰影の形（クリーン vs. ダーティー）で結石・骨・空気の鑑別材料になる。
+    </div>
+  </div>
+
+  <!-- ===== 5. 筋肉 ===== -->
+  <div class="topic-card">
+    <h3>💪 ⑤ 筋肉（muscle）</h3>
+    <span class="echo-badge echo-hypo">低エコー主体＋線状高エコー（筋膜）</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>筋線維は低エコー（暗めのグレー）で、その間を走る筋膜・筋周膜が線状の高エコーとして見える。この「低エコー背景＋高エコーの線状構造」のパターンが筋肉の典型的なエコー像。超音波を筋線維に垂直に当てると羽状・紡錘状の線維配列が見えることもある。</p>
+    <div class="supplement-note">
+      ※筋肉のエコー像の体系的定義は教材PDFの基礎範囲では限定的。神経筋エコーのレビュー等に基づく補足情報を含む。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・表層の筋肉はリニアプローブ、深部の筋肉はコンベックスプローブへ切り替える。<br>
+      ・圧迫で筋膜間の液体や血腫の可動性を確認できることがある（血腫評価など）。
+    </div>
+  </div>
+
+  <!-- Quiz 2 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-2</span>
+    <div class="quiz-q">骨皮質のエコー像として正しいのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-2')">① 無エコー（真っ黒）で後方エコー増強を伴う</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-2')">② 低エコーの層状構造として見える</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-2')">③ 明るい白い高エコー線として見え、後方に音響陰影を伴う</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-2')">④ 蜂の巣状のパターンとして見える</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-2"></div>
+  </div>
+
+  <!-- Quiz 3 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-3</span>
+    <div class="quiz-q">筋肉のエコー像の典型的な特徴はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-3')">① 低エコー背景に線状の高エコー（筋膜）が走るパターン</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-3')">② 無エコーで後方エコー増強を伴う</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-3')">③ 高エコー線の後方に音響陰影が見られる</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-3')">④ 線維束が高エコーで角度依存性が非常に高い</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-3"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 6. 軟骨 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">軟骨と骨はどう違う見え方をするんですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      骨と違って、軟骨はカルシウムが少ないから超音波を「通過させる」！そのため骨より暗く（低エコー〜中エコー）見えるよ。
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🦵 ⑥ 軟骨（cartilage）</h3>
+    <span class="echo-badge echo-hypo">低〜中エコー（層状）</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>軟骨は骨皮質と比べてカルシウム含量が少なく、超音波をある程度通過させるため、骨の白い高エコー線と対比して<strong>低〜中エコーの層として</strong>描出される。関節軟骨は骨皮質面の上に低エコーの薄い層として見える。</p>
+    <div class="supplement-note">
+      ※軟骨のエコー像は教材PDFでは限定的な記載。小児での評価（骨化未熟で超音波窓が得られやすい）については補足情報を含む。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>小児では骨化が未熟なため、大人では見えない部分が軟骨窓として見えることがある。</strong> 評価戦略が成人と異なることに注意。<br>
+      ・断面を回転させながら連続性を確認する（軟骨損傷の評価など）。
+    </div>
+  </div>
+
+  <!-- ===== 7. 腱 ===== -->
+  <div class="topic-card">
+    <h3>🎗️ ⑦ 腱（tendon）</h3>
+    <span class="echo-badge echo-hyper">高エコー繊維束状＋角度依存性が強い</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>腱は密に詰まったコラーゲン線維からなり、線維束が整然と並んでいるため、超音波を当てる角度によって見え方が大きく変わる（<strong>異方性：anisotropy</strong>）。プローブを線維に垂直に当てると高エコーの線維束構造として見えるが、角度がずれると急に低エコーになる。</p>
+    <div class="supplement-note">
+      ※腱の典型エコー像（fibrillar echotexture・角度依存性）は教材PDFの第2章では整理されておらず、臨床レビューに基づく補足情報を含む。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>腱が暗く見えたら、まず角度（プローブのロック・ファン操作）を疑う。</strong> anisotropyによる偽の低エコーかもしれない。<br>
+      ・腱断裂は無エコーのギャップ（隙間）として見えることが多い。<br>
+      ・評価は長軸と短軸の両断面で行う。
+    </div>
+  </div>
+
+  <!-- Quiz 4 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-4</span>
+    <div class="quiz-q">腱が暗く（低エコーに）見えたとき、最初に考えるべきことは？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-4')">① 腱断裂を疑い、すぐMRIを指示する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-4')">② anisotropy（角度依存性）による偽の低エコーの可能性を考え、プローブ角度を調整してみる</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-4')">③ ゲインを上げて再評価する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-4')">④ カラードプラで血流を確認する</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-4"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== 8. 神経 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">神経って超音波で見えるんですか？どんな見え方をしますか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      高周波リニアプローブなら見えるよ！短軸（横切り）で見ると<strong>蜂の巣状（honeycomb pattern）</strong>に見えるのが特徴。血管とよく似ているから、カラードプラや圧迫で区別しよう！
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🧠 ⑧ 神経（nerve）</h3>
+    <span class="echo-badge echo-iso">中エコー（honeycomb様）</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>神経は短軸断面（横切り）で観察すると、神経内の神経束（fascicle）が低エコーで、それを囲む結合組織（epineurium）が高エコーという「蜂の巣状（honeycomb pattern）」として見える。腱に比べてanisotropy（角度依存性）は低い。</p>
+    <div class="supplement-note">
+      ※神経のエコー像（honeycomb pattern・血管との鑑別）は教材PDFでは限定的な記載。神経エコーのレビュー文献に基づく補足情報を含む。
+    </div>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>血管との鑑別：圧迫（静脈は圧迫で潰れる）＋カラードプラ（血管は血流あり、神経は血流なし）で区別する。</strong><br>
+      ・神経ブロック時は、同定後にプローブを回転・ファンしながら神経の走行を追う。<br>
+      ・血管誤穿刺を防ぐためにカラードプラを必要に応じて併用する。
+    </div>
+  </div>
+
+  <!-- ===== 9. 血管 ===== -->
+  <div class="chat-bubble-wrap user-wrap">
+    <div class="user-avatar">🙋</div>
+    <div class="user-bubble">血管と神経って似てるんですね。どうやって見分けるんですか？</div>
+  </div>
+  <div class="chat-bubble-wrap">
+    <svg class="sonobo-avatar" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#1a6fd4" fill-opacity="0.12"/><ellipse cx="40" cy="44" rx="22" ry="18" fill="white"/><circle cx="33" cy="38" r="5" fill="#1a6fd4"/><circle cx="47" cy="38" r="5" fill="#1a6fd4"/><circle cx="34.5" cy="37" r="1.5" fill="white"/><circle cx="48.5" cy="37" r="1.5" fill="white"/><path d="M34 47 Q40 52 46 47" stroke="#1a6fd4" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20 30 Q18 20 26 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M60 30 Q62 20 54 18" stroke="#1a6fd4" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+    <div class="chat-bubble">
+      <div class="speaker">🤖 ソノボ君</div>
+      血管の見分け方は「圧迫・拍動・カラードプラ」の3点セット！動脈は圧迫しても潰れず拍動あり、静脈は圧迫で潰れる、カラードプラで血流が確認できる。これを覚えよう🩸
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <h3>🩸 ⑨ 血管（vessel）</h3>
+    <span class="echo-badge echo-anecho">管腔：無エコー（内腔）</span>
+    <span class="echo-badge echo-hyper">壁：高エコー線</span>
+    <p style="margin-top:10px;"><strong>特徴：</strong>血管の管腔（血液が入っている部分）は無エコー（液体）、血管壁は高エコーの線として見える。動脈は圧迫しても潰れず、拍動が見られる。静脈は壁が薄く、プローブで圧迫すると管腔が潰れる（compressibility）。カラードプラで血流シグナルが確認できる。</p>
+    <p><strong>動脈 vs 静脈の鑑別ポイント：</strong></p>
+    <ul>
+      <li>🔴 <strong>動脈</strong>：壁が厚い、拍動あり、圧迫で潰れない、カラードプラで血流あり</li>
+      <li>🔵 <strong>静脈</strong>：壁が薄い、拍動なし（または弱い）、圧迫で潰れる、カラードプラで血流あり</li>
+    </ul>
+    <div class="point-box">
+      <div class="point-title">🩺 POCUSでの臨床ポイント</div>
+      ・<strong>DVT（深部静脈血栓症）評価：静脈を圧迫して潰れない→血栓の存在を疑う。</strong><br>
+      ・カラードプラ設定が不良だと血流が見えないことがあるため、ゲインとPRFを適切に設定する。<br>
+      ・PWドプラは角度とPRFが計測精度を決める（トピック12参照）。
+    </div>
+  </div>
+
+  <!-- Quiz 5 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-5</span>
+    <div class="quiz-q">超音波で神経と静脈を鑑別する方法として適切なのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-5')">① 周波数を変えて輝度が変わるか確認する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-5')">② プローブで圧迫して潰れるか（静脈）＋カラードプラで血流があるか（血管）を確認する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-5')">③ Mモードで時間変化を確認する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-5')">④ 音響陰影の有無で鑑別する</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-5"></div>
+  </div>
+
+  <!-- Quiz 6 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-6</span>
+    <div class="quiz-q">DVT（深部静脈血栓症）のエコー評価で最も基本的な所見はどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-6')">① プローブで圧迫しても静脈が潰れない（non-compressible）</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-6')">② 静脈内に高エコーの石灰化が見える</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-6')">③ 静脈の後方エコー増強が消失する</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-6')">④ 静脈壁の音響陰影が出現する</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-6"></div>
+  </div>
+
+  <!-- Quiz 7 総合 -->
+  <div class="quiz-block">
+    <span class="quiz-label">🧠 クイズ 14-7（総合）</span>
+    <div class="quiz-q">各組織とエコー像の組み合わせで誤っているのはどれ？</div>
+    <div class="quiz-choices">
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-7')">① 液体→無エコー＋後方エコー増強</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-7')">② 骨→高エコー線＋後方音響陰影</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'correct','14-7')">③ 腱→anisotropyがほとんどなく常に均一な高エコーとして見える</button>
+      <button class="quiz-choice" onclick="answerQuiz(this,'wrong','14-7')">④ 神経（短軸）→honeycomb様パターン</button>
+    </div>
+    <div class="quiz-feedback" id="fb-14-7"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="summary-card">
+    <h3>📋 トピック14 まとめ：基本組織のエコー像</h3>
+    <table>
+      <tr><th>組織</th><th>エコー像のポイント</th></tr>
+      <tr><td>💧 液体</td><td>無エコー＋後方エコー増強。FASTの基本</td></tr>
+      <tr><td>🧈 脂肪</td><td>中〜高エコー。深部減衰に注意</td></tr>
+      <tr><td>🫀 軟部組織</td><td>層状構造。リニアで表層を観察</td></tr>
+      <tr><td>🦴 骨</td><td>高エコー線＋後方音響陰影</td></tr>
+      <tr><td>💪 筋肉</td><td>低エコー主体＋線状高エコー（筋膜）</td></tr>
+      <tr><td>🦵 軟骨</td><td>低〜中エコー（骨より暗い）。小児で評価しやすい</td></tr>
+      <tr><td>🎗️ 腱</td><td>高エコー線維束状。角度依存性（anisotropy）大</td></tr>
+      <tr><td>🧠 神経（短軸）</td><td>honeycomb様。圧迫＋カラードプラで血管と鑑別</td></tr>
+      <tr><td>🩸 血管</td><td>管腔：無エコー。動脈＝拍動あり・圧迫で潰れない。静脈＝圧迫で潰れる</td></tr>
+    </table>
+  </div>
+
+</main>
+
+<script>
+const feedbacks = {
+  '14-1': { correct: '正解！ 無エコー（真っ黒）＋後方エコー増強は液体（嚢胞・胸水・腹水など）の典型的なエコーサインです。', wrong: '不正解。無エコー＋後方エコー増強は液体の典型です。骨は高エコー線＋音響陰影、脂肪は中〜高エコー、筋肉は低エコー主体です。' },
+  '14-2': { correct: '正解！ 骨皮質は超音波をほぼすべて反射するため、明るい高エコー線として見え、その後方に音響陰影が生じます。', wrong: '不正解。骨皮質の典型は「高エコー線＋後方音響陰影」です。無エコー＋後方エコー増強は液体の特徴です。' },
+  '14-3': { correct: '正解！ 筋肉は低エコーの筋線維と、その間を走る高エコーの筋膜・筋周膜の組み合わせが典型的なエコー像です。', wrong: '不正解。筋肉の典型は「低エコー背景に線状の高エコー（筋膜）が走るパターン」です。高エコーの線維束＋角度依存性は腱の特徴です。' },
+  '14-4': { correct: '正解！ 腱はanisotropy（角度依存性）が強く、角度がずれると低エコーに見えます。まずプローブ角度を調整することが最初のステップです。', wrong: '不正解。腱のanisotropy（角度依存性）が原因で低エコーになることが多い。まずプローブ角度を調整して再確認します。' },
+  '14-5': { correct: '正解！ 圧迫で潰れれば静脈（神経は潰れない）、カラードプラで血流があれば血管（神経に血流なし）として鑑別できます。', wrong: '不正解。神経と血管（静脈）の鑑別は「圧迫（静脈は潰れる）＋カラードプラ（血管は血流あり）」が基本です。' },
+  '14-6': { correct: '正解！ DVT評価では圧迫（compression法）で静脈が潰れないこと（non-compressible）が最も基本的な所見です。', wrong: '不正解。DVTの最も基本的な所見は「静脈を圧迫しても潰れない（non-compressible）」ことです。これがDVTの主要診断根拠です。' },
+  '14-7': { correct: '正解！ 腱はanisotropy（角度依存性）が非常に強く、プローブの角度によって高エコーにも低エコーにも見えます。「常に均一な高エコー」は誤りです。', wrong: '不正解。誤りは「腱のanisotropyがない」という記述です。腱はanisotropyが非常に強く、角度によって著しく輝度が変わります。' },
+};
+function answerQuiz(btn, result, id) {
+  const block = btn.closest('.quiz-block');
+  const choices = block.querySelectorAll('.quiz-choice');
+  const fb = document.getElementById('fb-' + id);
+  if (block.dataset.answered) return;
+  block.dataset.answered = '1';
+  choices.forEach(c => { c.disabled = true; });
+  if (result === 'correct') {
+    btn.classList.add('correct');
+    fb.className = 'quiz-feedback correct-fb';
+    fb.textContent = '✅ ' + feedbacks[id].correct;
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'quiz-feedback wrong-fb';
+    fb.textContent = '❌ ' + feedbacks[id].wrong;
+    choices.forEach(c => { if (c.onclick.toString().includes("'correct'")) c.classList.add('show-correct'); });
+  }
+}
+</script>
+</body>
+</html>
